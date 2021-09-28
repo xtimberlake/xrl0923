@@ -20,7 +20,7 @@ typedef struct
 
 
 
-
+uint8_t* from_float_to_uint(float f);
 void communicatingTask(void *argument);
 void ubuntu_receive_callback(uint8_t *rx_buff, uint16_t length);
 

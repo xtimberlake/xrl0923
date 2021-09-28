@@ -16,6 +16,21 @@ chassis_t chassis;
 union UNION_Float tx_data1;
 union UNION_Float tx_data2;
 uint8_t uart_tx_buff[8];
+uint8_t ubuntu_uart_tx_buff[8];
+
+uint8_t* from_float_to_uint(float f)
+{
+	static uint8_t  u8_data[4];
+	union UNION_Float union_buff;
+	union_buff.f = f;
+
+	u8_data[0] = union_buff.ch[0];
+	u8_data[1] = union_buff.ch[1];
+	u8_data[2] = union_buff.ch[2];
+	u8_data[3] = union_buff.ch[3];
+
+	return u8_data;
+}
 
 void communicatingTask(void *argument)
 {
@@ -34,6 +49,10 @@ void communicatingTask(void *argument)
 	uart_tx_buff[6] = tx_data2.ch[2];
 	uart_tx_buff[7] = tx_data2.ch[3];
 	//转换成ch类型
+
+
+	float sin_varible;
+	float cos_varible;
 
   /* Infinite loop */
   for(;;)
@@ -55,9 +74,22 @@ void communicatingTask(void *argument)
 	  chassis.vw += 0.1;
 	  chassis.vx = sin(chassis.vw);
 
-	  HAL_UART_Transmit(&huart6, uart_tx_buff, sizeof(uart_tx_buff), 0xFF);
+	  sin_varible = sin(chassis.vw);
+	  cos_varible = cos(chassis.vw) + 1.5;
 
-    osDelay(1000);
+	  uint8_t* tf_buff = from_float_to_uint(sin_varible);
+	  for (int i = 0; i < 4; i++) {
+		  ubuntu_uart_tx_buff[i] = tf_buff[i];
+	  }
+	  uint8_t* tf_buff_2 = from_float_to_uint(cos_varible);
+	  for (int i = 4; i < 8; i++) {
+		  ubuntu_uart_tx_buff[i] = tf_buff_2[i-4];
+	  }
+
+	  HAL_UART_Transmit(&huart6, ubuntu_uart_tx_buff, sizeof(ubuntu_uart_tx_buff), 0xFF);
+	  //HAL_UART_Transmit(&huart6, uart_tx_buff, sizeof(uart_tx_buff), 0xFF);
+
+    osDelay(500);
   }
   /* USER CODE END communicatingTask */
 }
