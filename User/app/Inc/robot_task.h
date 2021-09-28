@@ -14,7 +14,9 @@
 typedef enum
 {
   INITIALIZING,
-  WORKING
+  WORKING,
+  TROTING
+
 
 }robot_state_e;
 
@@ -25,8 +27,10 @@ typedef struct
   float x_cmd,y_cmd;
   float fx, fy;
   float fx_ref, fy_ref;
-
+  int gait_phase;
 } leg_side_t;
+
+
 
 typedef struct
 {

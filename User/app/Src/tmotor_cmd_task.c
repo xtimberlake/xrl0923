@@ -41,6 +41,15 @@ void tmotorTask(void *argument)
 		  osDelay(2);
 		  robot.last_state = WORKING;
 	  }
+	  if(robot.state == TROTING && robot.last_state == WORKING)
+		  {
+		  	  robot.walkingParam._t=0;
+			  robot.last_state = TROTING;
+		  }
+	  if(robot.state == WORKING && robot.last_state == TROTING)
+	  		  {
+	  			  robot.last_state = WORKING;
+	  		  }
 	  osDelay(1);
 
 

@@ -61,25 +61,25 @@ void pkg_tmotor_init()
 	tmotor_init(&leftHip_Motor, LEFT_HIP_MOTOR_ID, \
 				HIP_MOTOR_OFFSET, \
 				3.0, \
-				10.0, 4.0, \
+				30.0, 4.0, \
 				40.0, 0.001, 0.0);
 
 	tmotor_init(&leftKnee_Motor, LEFT_KNEE_MOTOR_ID, \
 				KNEE_MOTOR_OFFSET, \
 				3.0, \
-				10.0, 4.0, \
+				30.0, 4.0, \
 				40.0, 0.001, 0.0);
 
 	tmotor_init(&rightHip_Motor, RIGHT_HIP_MOTOR_ID, \
 			    HIP_MOTOR_OFFSET, \
 				3.0, \
-				10.0, 4.0, \
+				30.0, 4.0, \
 				40.0, 0.001, 0.0);
 
 	tmotor_init(&rightKnee_Motor, RIGHT_KNEE_MOTOR_ID, \
 				KNEE_MOTOR_OFFSET, \
 				3.0, \
-				10.0, 4.0, \
+				30.0, 4.0, \
 				40.0, 0.001, 0.0);
 	
 

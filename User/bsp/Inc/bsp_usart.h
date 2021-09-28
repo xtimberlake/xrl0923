@@ -7,14 +7,15 @@
 
 //#define PRINTF_USART huart6
 #define UBUNTU_USART huart6
-
-
 #define DMA_UBUNTU_LEN 150
+#define PC_CMD_USART huart8
+#define PC_CMD_LEN 1
 
 
 
 /* External private variables ---------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_usart6_rx;
+extern DMA_HandleTypeDef hdma_uart8_rx;
 extern uint8_t dma_ubuntu_buff[DMA_UBUNTU_LEN];
 extern robot_TypeDef robot;
 

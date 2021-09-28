@@ -6,7 +6,6 @@
  */
 #include "robot_task.h"
 
-
 impedance_t impd_left_hip_diff;
 impedance_t impd_left_knee_diff;
 impedance_t impd_right_hip_diff;
@@ -40,6 +39,8 @@ void robot_task(void *argument)
 	admittance_struct_init(&admt_right_x_diff, 0.2, 4, 150.0, 5.0);
 	admittance_struct_init(&admt_right_y_diff, 0.2, 4, 150.0, 5.0);
 
+	walkingPara_struct_init(&robot.walkingParam, 0.5,0,0.5,0,150,900);
+
   /* Infinite loop */
   for(;;)
   {
@@ -56,16 +57,32 @@ void robot_task(void *argument)
 		}
 		case WORKING:
 		{
-			//robot.leftLeg.x_ref = robot.leftLeg.x;
-			//robot.rightLeg.z_ref = robot.rightLeg.z;
+			robot.leftLeg.x_ref =0;
+			robot.leftLeg.y_ref = 900;
+			robot.rightLeg.x_ref = 0;
+			robot.rightLeg.y_ref = 900;
 			robot_acting();
+			break;
+		}
+		case TROTING:
+		{
+			troting(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, robot.walkingParam._t, robot.walkingParam);
+			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
+				troting(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t+robot.walkingParam.T_s/2, robot.walkingParam);
+			}
+			else{
+				troting(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
+			}
 
-
-
-
+			if(robot.walkingParam._t>=robot.walkingParam.T_s){
+				robot.walkingParam._t=0;
+			}
+			robot.walkingParam._t+=0.005;
+			robot_acting();
 			break;
 		}
 	}
+	osDelay(5);
   }
   /* USER CODE END robot_task */
 }
@@ -111,10 +128,10 @@ void robot_sensing()
 
 void robot_acting()
 {
-	robot_leg_admittance_ctrller();
+	//robot_leg_admittance_ctrller();
 
 	//注意调用完左腿ik后立即使用ang_left,否则会被右腿ik覆盖
-	float* ang_left = inverse_kinematics(LENGTH_HIP_LINK, LENGTH_KNEE_LINK, robot.leftLeg.x_cmd, robot.leftLeg.y_cmd);
+	float* ang_left = inverse_kinematics(LENGTH_HIP_LINK, LENGTH_KNEE_LINK, robot.leftLeg.x_ref, robot.leftLeg.y_ref);
 	leftHip_Motor.ref_position = -ang_left[0] + leftHip_Motor.assemble_bias;
 	leftKnee_Motor.ref_position = -ang_left[1] + leftKnee_Motor.assemble_bias ;
 
