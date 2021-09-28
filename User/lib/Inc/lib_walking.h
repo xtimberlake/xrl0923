@@ -13,15 +13,55 @@ typedef struct
 	float _t;      //当前时间(相位)
 	float lambda;  //支撑相占空比
     float _v;       //速度
-    float leg_lift_hight;  //抬腿高度
+    float leg_lift_height;  //抬腿高度
     float body_hight;           //身体高度
+    float trajectory_centre[2];
+
+    float preSwing_ctrl_pts_x[6];
+    float preSwing_ctrl_pts_y[6];
+    float postSwing_ctrl_pts_x[6];
+    float postSwing_ctrl_pts_y[6];
+
+    float preStance_ctrl_pts_x[6];
+    float preStance_ctrl_pts_y[6];
+    float postStance_ctrl_pts_x[3];
+    float postStance_ctrl_pts_y[3];
+
 } walkingPara_TypeDef;
+
+typedef struct
+{
+    float preSwing_x[6];
+    float preSwing_y[6];
+    float postSwing_x[6];
+    float postSwing_y[6];
+
+    float preStance_x[6];
+    float preStance_y[6];
+    float postStance_x[3];
+    float postStance_y[3];
+
+} bezier_control_points_TypeDef;
+
+enum
+{
+	CALC_PRE_SWING = 0,
+	CALC_POST_SWING = 1,
+	CALC_PRE_STANCE = 2,
+	CALC_POST_STANCE = 3
+};
+
+extern bezier_control_points_TypeDef bezier_ctrl_pts;
+
+#include "lib_planning.h"
 
 
 
 void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,float lambda,float _v,float leg_lift_hight,float body_hight);
 void troting(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara);
 float Interpolate_cubicBezier(float y0, float yf, float x);
-float sature(float value,float maxvalue,float minvalue);
+float sature(float value,float maxvalue,float minvalue);\
+void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara);
+void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h);
 
 #endif

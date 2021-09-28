@@ -74,6 +74,14 @@ void robot_task(void *argument)
 				troting(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
 			}
 
+//			bezier_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, robot.walkingParam._t, robot.walkingParam);
+//			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
+//				bezier_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
+//			}
+//			else{
+//				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
+//			}
+
 			if(robot.walkingParam._t>=robot.walkingParam.T_s){
 				robot.walkingParam._t=0;
 			}
