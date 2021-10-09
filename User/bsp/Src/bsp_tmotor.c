@@ -13,6 +13,8 @@
   */
 	
 #include "bsp_tmotor.h"
+
+
 #define __TMOTOR_BSP_GLOBALS
 
 
@@ -299,6 +301,20 @@ void unpackCanInfoFromMotor(uint8_t* data, tmotor_handle_t* motor)
 	motor->curr_speed_radps = uint_to_float(v_int,velocity_MIN,velocity_MAX,12);
 	motor->curr_torque = uint_to_float(t_int,Torque_MIN,Torque_MAX,12);
 	motor->fault = (data[6] << 8) | data[7];
+
+	if(motor->buff_cnt >= SMOOTH_NUM){
+				motor->buff_cnt = 0;
+			}
+	motor->torque_buff[motor->buff_cnt] = motor->curr_torque;
+	motor->buff_cnt++;
+	float sum;
+	for (int i = 0; i < SMOOTH_NUM; i++) {
+		sum += motor->torque_buff[i];
+	}
+	motor->average_torque = sum / SMOOTH_NUM;
+
+
+
 	}
 }
 

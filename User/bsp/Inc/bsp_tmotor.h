@@ -32,9 +32,23 @@
 #define KI_MIN 0
 #define KI_MAX 0.05
 
-#define HIP_MOTOR_OFFSET 0.5330
-#define KNEE_MOTOR_OFFSET 0.6570
+//#define HIP_MOTOR_OFFSET 0.5330
+//#define KNEE_MOTOR_OFFSET 0.6570
 
+#define HIP_MOTOR_OFFSET 0.4973f
+#define KNEE_MOTOR_OFFSET 0.5611f
+
+#define RIGHT_HIP_MAX_ANGLE 0.4738f
+#define RIGHT_HIP_MIN_ANGLE -0.5330f
+#define RIGHT_KNEE_MAX_ANGLE 0.6480f
+#define RIGHT_KNEE_MIN_ANGLE -0.5580f
+
+#define LEFT_HIP_MAX_ANGLE 0.5330f
+#define LEFT_HIP_MIN_ANGLE -0.4738f
+#define LEFT_KNEE_MAX_ANGLE 0.5580f
+#define LEFT_KNEE_MIN_ANGLE -0.6480f
+
+#define SMOOTH_NUM 10
 
 /// CAN Reply Packet Structure ///
 /// 16 bit position, between -4*pi and 4*pi
@@ -75,10 +89,16 @@ typedef struct
 	//reference data
     float ref_position;
     float ref_torque;
+    float ref_cmd;
     //current feedback data
 	float curr_position;
 	float curr_speed_radps;
+
+	float torque_buff[SMOOTH_NUM];
+	uint8_t buff_cnt;
+
 	float curr_torque;
+	float average_torque;
     //parameter of PID
 	float Kp_theta;
 	float Kd_theta;

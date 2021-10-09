@@ -17,8 +17,10 @@ void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,f
 	walkpara->leg_lift_height=leg_lift_height;
 	walkpara->body_hight=body_hight;
 
-	walkpara->trajectory_centre[X] = 0.0;
-	walkpara->trajectory_centre[Y] = body_hight;
+	walkpara->push_height = 20.0;
+
+	walkpara->trajectory_centreX = 0.0;
+	walkpara->trajectory_centreY = body_hight;
 }
 
 
@@ -110,16 +112,16 @@ void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef 
 	    	if(bezier_info < stance_div)
 	    	{
 	    		//bezier/0.7
-	    		calcu_ctrl_pts(CALC_PRE_STANCE, walkpara.trajectory_centre[X], walkpara.trajectory_centre[Y], \
-	    			  	  	  distance, walkpara.leg_lift_height);
+	    		calcu_ctrl_pts(CALC_PRE_STANCE, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
+	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	    		uint16_t dim = sizeof(bezier_ctrl_pts.preStance_x) / sizeof(float);
 	    		float* pts = bezier_generate(bezier_ctrl_pts.preStance_x, bezier_ctrl_pts.preStance_y, dim, bezier_info/stance_div);
 	    		*x_ref = pts[X];
 	    		*y_ref = pts[Y];
 	    	}
 	    	else {
-	    		calcu_ctrl_pts(CALC_POST_STANCE, walkpara.trajectory_centre[X], walkpara.trajectory_centre[Y], \
-	    			    			  	  	  distance, walkpara.leg_lift_height);
+	    		calcu_ctrl_pts(CALC_POST_STANCE, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
+	    			    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	    		uint16_t dim = sizeof(bezier_ctrl_pts.postStance_x) / sizeof(float);
 	    		float* pts = bezier_generate(bezier_ctrl_pts.postStance_x, bezier_ctrl_pts.postStance_y, dim, \
 	    				bezier_info/(1.0-stance_div) + stance_div/(stance_div-1));
@@ -134,8 +136,8 @@ void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef 
 
 	      if(bezier_info < 0.5)
 	      {
-	    	  calcu_ctrl_pts(CALC_PRE_SWING, walkpara.trajectory_centre[X], walkpara.trajectory_centre[Y], \
-	    			  	  	  distance, walkpara.leg_lift_height);
+	    	  calcu_ctrl_pts(CALC_PRE_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
+	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	    	  uint16_t dim = sizeof(bezier_ctrl_pts.preSwing_x) / sizeof(float);
 	    	  float* pts = bezier_generate(bezier_ctrl_pts.preSwing_x, bezier_ctrl_pts.preSwing_y, dim, bezier_info*2);
 	    	  *x_ref = pts[X];
@@ -143,8 +145,8 @@ void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef 
 	      }
 	      else
 	      {
-	    	  calcu_ctrl_pts(CALC_POST_SWING, walkpara.trajectory_centre[X], walkpara.trajectory_centre[Y], \
-	    			  	  	  distance, walkpara.leg_lift_height);
+	    	  calcu_ctrl_pts(CALC_POST_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
+	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	    	  uint16_t dim = sizeof(bezier_ctrl_pts.postSwing_x) / sizeof(float);
 	    	  float* pts = bezier_generate(bezier_ctrl_pts.postSwing_x, bezier_ctrl_pts.postSwing_y, dim, bezier_info*2 - 1);
 	    	  *x_ref = pts[X];
@@ -160,7 +162,7 @@ void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef 
 
 }
 
-void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h)
+void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h, float push_h)
 {
 	switch (flag) {
 		case CALC_PRE_SWING:
@@ -207,11 +209,11 @@ void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h)
 			bezier_ctrl_pts.preStance_x[5] = x0 - 0.3 * length_step;
 
 			bezier_ctrl_pts.preStance_y[0] = y0;
-			bezier_ctrl_pts.preStance_y[1] = y0 + 0.5 * h;
+			bezier_ctrl_pts.preStance_y[1] = y0 + 0.5 * push_h;
 			bezier_ctrl_pts.preStance_y[2] = y0;
-			bezier_ctrl_pts.preStance_y[3] = y0 - 0.5 * h;
-			bezier_ctrl_pts.preStance_y[4] = y0 + h;
-			bezier_ctrl_pts.preStance_y[5] = y0 + h;
+			bezier_ctrl_pts.preStance_y[3] = y0 - 0.5 * push_h;
+			bezier_ctrl_pts.preStance_y[4] = y0 + push_h;
+			bezier_ctrl_pts.preStance_y[5] = y0 + push_h;
 
 		break;}
 		case CALC_POST_STANCE:
@@ -220,8 +222,8 @@ void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h)
 			bezier_ctrl_pts.postStance_x[1] = x0 - 0.4 * length_step;
 			bezier_ctrl_pts.postStance_x[2] = x0 - 0.5 * length_step;
 
-			bezier_ctrl_pts.postStance_y[0] = y0 + h;
-			bezier_ctrl_pts.postStance_y[1] = y0 + h * 0.8;
+			bezier_ctrl_pts.postStance_y[0] = y0 + push_h;
+			bezier_ctrl_pts.postStance_y[1] = y0 + push_h * 0.8;
 			bezier_ctrl_pts.postStance_y[2] = y0;
 
 		break;}

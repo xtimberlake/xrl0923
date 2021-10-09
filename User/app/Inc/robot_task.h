@@ -7,8 +7,12 @@
 #include "lib_impd.h"
 #include "lib_admittance.h"
 
-#define LENGTH_HIP_LINK 625.0f
+//#define LENGTH_HIP_LINK 625.0f
+//#define LENGTH_KNEE_LINK 520.0f
+
+#define LENGTH_HIP_LINK 580.0f
 #define LENGTH_KNEE_LINK 520.0f
+
 
 //定义机器人状态
 typedef enum

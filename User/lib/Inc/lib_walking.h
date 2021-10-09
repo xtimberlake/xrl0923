@@ -14,18 +14,11 @@ typedef struct
 	float lambda;  //支撑相占空比
     float _v;       //速度
     float leg_lift_height;  //抬腿高度
+    float push_height;
     float body_hight;           //身体高度
-    float trajectory_centre[2];
+    float trajectory_centreX;
+    float trajectory_centreY;
 
-    float preSwing_ctrl_pts_x[6];
-    float preSwing_ctrl_pts_y[6];
-    float postSwing_ctrl_pts_x[6];
-    float postSwing_ctrl_pts_y[6];
-
-    float preStance_ctrl_pts_x[6];
-    float preStance_ctrl_pts_y[6];
-    float postStance_ctrl_pts_x[3];
-    float postStance_ctrl_pts_y[3];
 
 } walkingPara_TypeDef;
 
@@ -62,6 +55,6 @@ void troting(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara
 float Interpolate_cubicBezier(float y0, float yf, float x);
 float sature(float value,float maxvalue,float minvalue);\
 void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara);
-void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h);
+void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h, float push_h);
 
 #endif

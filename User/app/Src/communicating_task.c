@@ -11,6 +11,7 @@
 
 #define  __RELAY_TASK_GLOBALS
 
+int test_int = 10;
 chassis_t chassis;
 
 union UNION_Float tx_data1;
@@ -71,8 +72,8 @@ void communicatingTask(void *argument)
 //
 //	      }
 
-	  chassis.vw += 0.1;
-	  chassis.vx = sin(chassis.vw);
+	  chassis.vw += chassis.vy;
+	  chassis.vx = 50 * sin(chassis.vw);
 
 	  sin_varible = sin(chassis.vw);
 	  cos_varible = cos(chassis.vw) + 1.5;
@@ -85,11 +86,11 @@ void communicatingTask(void *argument)
 	  for (int i = 4; i < 8; i++) {
 		  ubuntu_uart_tx_buff[i] = tf_buff_2[i-4];
 	  }
-
+	  test_int += 1;
 	  HAL_UART_Transmit(&huart6, ubuntu_uart_tx_buff, sizeof(ubuntu_uart_tx_buff), 0xFF);
 	  //HAL_UART_Transmit(&huart6, uart_tx_buff, sizeof(uart_tx_buff), 0xFF);
 
-    osDelay(500);
+    osDelay(100);
   }
   /* USER CODE END communicatingTask */
 }
