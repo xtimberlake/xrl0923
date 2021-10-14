@@ -39,7 +39,7 @@ void robot_task(void *argument)
 	admittance_struct_init(&admt_right_x_diff, 0.2, 4, 150.0, 5.0);
 	admittance_struct_init(&admt_right_y_diff, 0.2, 4, 150.0, 5.0);
 
-	walkingPara_struct_init(&robot.walkingParam, 1.0,0,0.7,0,150,900);
+	walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,150,920);
 
   /* Infinite loop */
   for(;;)
@@ -58,9 +58,9 @@ void robot_task(void *argument)
 		case WORKING:
 		{
 			robot.leftLeg.x_ref =0;
-			robot.leftLeg.y_ref = 900;
+			robot.leftLeg.y_ref = 920;
 			robot.rightLeg.x_ref = 0;
-			robot.rightLeg.y_ref = 900;
+			robot.rightLeg.y_ref = 920;
 			robot_acting();
 			break;
 		}
@@ -74,12 +74,20 @@ void robot_task(void *argument)
 //				troting(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
 //			}
 
-			bezier_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, robot.walkingParam._t, robot.walkingParam);
+//			bezier_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, robot.walkingParam._t, robot.walkingParam);
+//			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
+//				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
+//			}
+//			else{
+//				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
+//			}
+
+			bezier_sin_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, robot.walkingParam._t, robot.walkingParam);
 			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
-				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
+				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
 			}
 			else{
-				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
+				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
 			}
 
 			if(robot.walkingParam._t>=robot.walkingParam.T_s){
@@ -149,28 +157,38 @@ void robot_acting()
 	rightKnee_Motor.ref_position = ang_right[1] - rightKnee_Motor.assemble_bias;
 
 	//robot_impedance_ctrller();
-	robot_admittance_ctrller();
 
-		leftHip_Motor.ref_cmd = sature(leftHip_Motor.ref_cmd, RIGHT_HIP_MAX_ANGLE, RIGHT_HIP_MIN_ANGLE);
-		tmotor_set_position(LEFT_HIP_MOTOR_ID, leftHip_Motor.ref_cmd, leftHip_Motor.Kp_theta);
-		//osDelay(1);
-		leftKnee_Motor.ref_cmd = sature(leftKnee_Motor.ref_cmd, RIGHT_KNEE_MAX_ANGLE, RIGHT_KNEE_MIN_ANGLE);
-		tmotor_set_position(LEFT_KNEE_MOTOR_ID, leftKnee_Motor.ref_cmd, leftKnee_Motor.Kp_theta);
-
-//	leftHip_Motor.ref_position = sature(leftHip_Motor.ref_position, RIGHT_HIP_MAX_ANGLE, RIGHT_HIP_MIN_ANGLE);
-//	tmotor_set_position(LEFT_HIP_MOTOR_ID, leftHip_Motor.ref_position, leftHip_Motor.Kp_theta);
+//	robot_admittance_ctrller();
+//
+//
+//	leftHip_Motor.ref_cmd = sature(leftHip_Motor.ref_cmd, RIGHT_HIP_MAX_ANGLE, RIGHT_HIP_MIN_ANGLE);
+//	tmotor_set_position(LEFT_HIP_MOTOR_ID, leftHip_Motor.ref_cmd, leftHip_Motor.Kp_theta);
 //	//osDelay(1);
-//	leftKnee_Motor.ref_position = sature(leftKnee_Motor.ref_position, RIGHT_KNEE_MAX_ANGLE, RIGHT_KNEE_MIN_ANGLE);
-//	tmotor_set_position(LEFT_KNEE_MOTOR_ID, leftKnee_Motor.ref_position, leftKnee_Motor.Kp_theta);
-
-
-
+//	leftKnee_Motor.ref_cmd = sature(leftKnee_Motor.ref_cmd, RIGHT_KNEE_MAX_ANGLE, RIGHT_KNEE_MIN_ANGLE);
+//	tmotor_set_position(LEFT_KNEE_MOTOR_ID, leftKnee_Motor.ref_cmd, leftKnee_Motor.Kp_theta);
+//
 //	//osDelay(1);
-//	rightHip_Motor.ref_position = sature(rightHip_Motor.ref_position, LEFT_HIP_MAX_ANGLE, LEFT_HIP_MIN_ANGLE);
-//	tmotor_set_position(RIGHT_HIP_MOTOR_ID, rightHip_Motor.ref_position, rightHip_Motor.Kp_theta);
+//	rightHip_Motor.ref_cmd = sature(rightHip_Motor.ref_cmd, LEFT_HIP_MAX_ANGLE, LEFT_HIP_MIN_ANGLE);
+//	tmotor_set_position(RIGHT_HIP_MOTOR_ID, rightHip_Motor.ref_cmd, rightHip_Motor.Kp_theta);
 //	//osDelay(1);
-//	rightKnee_Motor.ref_position = sature(rightKnee_Motor.ref_position, LEFT_KNEE_MAX_ANGLE, LEFT_KNEE_MIN_ANGLE);
-//	tmotor_set_position(RIGHT_KNEE_MOTOR_ID, rightKnee_Motor.ref_position, rightKnee_Motor.Kp_theta);
+//	rightKnee_Motor.ref_cmd = sature(rightKnee_Motor.ref_cmd, LEFT_KNEE_MAX_ANGLE, LEFT_KNEE_MIN_ANGLE);
+//	tmotor_set_position(RIGHT_KNEE_MOTOR_ID, rightKnee_Motor.ref_cmd, rightKnee_Motor.Kp_theta);
+
+
+	leftHip_Motor.ref_position = sature(leftHip_Motor.ref_position, RIGHT_HIP_MAX_ANGLE, RIGHT_HIP_MIN_ANGLE);
+	tmotor_set_position(LEFT_HIP_MOTOR_ID, leftHip_Motor.ref_position, leftHip_Motor.Kp_theta);
+	//osDelay(1);
+	leftKnee_Motor.ref_position = sature(leftKnee_Motor.ref_position, RIGHT_KNEE_MAX_ANGLE, RIGHT_KNEE_MIN_ANGLE);
+	tmotor_set_position(LEFT_KNEE_MOTOR_ID, leftKnee_Motor.ref_position, leftKnee_Motor.Kp_theta);
+
+
+
+	//osDelay(1);
+	rightHip_Motor.ref_position = sature(rightHip_Motor.ref_position, LEFT_HIP_MAX_ANGLE, LEFT_HIP_MIN_ANGLE);
+	tmotor_set_position(RIGHT_HIP_MOTOR_ID, rightHip_Motor.ref_position, rightHip_Motor.Kp_theta);
+	//osDelay(1);
+	rightKnee_Motor.ref_position = sature(rightKnee_Motor.ref_position, LEFT_KNEE_MAX_ANGLE, LEFT_KNEE_MIN_ANGLE);
+	tmotor_set_position(RIGHT_KNEE_MOTOR_ID, rightKnee_Motor.ref_position, rightKnee_Motor.Kp_theta);
 
 }
 
@@ -195,14 +213,19 @@ void robot_admittance_ctrller(void)
 	admittance_calc(&admt_right_hip_diff, rightHip_Motor.average_torque, rightHip_Motor.ref_position);
 	rightHip_Motor.ref_cmd = rightHip_Motor.ref_position - admt_right_hip_diff.ed;
 
-	admittance_calc(&admt_right_knee_diff, rightKnee_Motor.average_torque, rightKnee_Motor.ref_position);
-	rightKnee_Motor.ref_cmd = rightKnee_Motor.ref_position - admt_right_knee_diff.ed;
+	//rightHip_Motor.ref_cmd = rightHip_Motor.ref_position;
+
+	rightKnee_Motor.ref_cmd = rightKnee_Motor.ref_position;
+//	admittance_calc(&admt_right_knee_diff, rightKnee_Motor.average_torque, rightKnee_Motor.ref_position);
+//	rightKnee_Motor.ref_cmd = rightKnee_Motor.ref_position - admt_right_knee_diff.ed;
 
 	admittance_calc(&admt_left_hip_diff, leftHip_Motor.average_torque, leftHip_Motor.ref_position);
 	leftHip_Motor.ref_cmd = leftHip_Motor.ref_position - admt_left_hip_diff.ed;
+	//leftHip_Motor.ref_cmd = leftHip_Motor.ref_position;
 
-	admittance_calc(&admt_left_knee_diff, leftKnee_Motor.average_torque, leftKnee_Motor.ref_position);
-	leftKnee_Motor.ref_cmd = leftKnee_Motor.ref_position - admt_left_knee_diff.ed;
+	leftKnee_Motor.ref_cmd = leftKnee_Motor.ref_position;
+//	admittance_calc(&admt_left_knee_diff, leftKnee_Motor.average_torque, leftKnee_Motor.ref_position);
+//	leftKnee_Motor.ref_cmd = leftKnee_Motor.ref_position - admt_left_knee_diff.ed;
 
 }
 void robot_leg_admittance_ctrller(void)
