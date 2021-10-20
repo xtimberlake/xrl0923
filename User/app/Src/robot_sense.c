@@ -8,7 +8,6 @@ void robot_sensingTask(void *argument)
   for(;;)
   {
 	  robot_sensing();
-	  //osDelay(1);
   }
   /* USER CODE END robot_sensingTask */
 }

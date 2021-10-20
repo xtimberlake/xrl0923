@@ -1,8 +1,12 @@
 #include "bsp_usart.h"
 
+extern UART_HandleTypeDef huart7;
+extern DMA_HandleTypeDef hdma_uart7_rx;
+
+
 uint8_t dma_ubuntu_buff[DMA_UBUNTU_LEN];
 uint8_t dma_pc_cmd_buff[PC_CMD_LEN];
-
+uint8_t dma_imu_buf[DMA_IMU_LEN];
 
 
 /**
@@ -11,9 +15,9 @@ uint8_t dma_pc_cmd_buff[PC_CMD_LEN];
 */
 void uart_pkg_init()
 {
-//	__HAL_UART_CLEAR_IDLEFLAG(&IMU_HUART);
-//	__HAL_UART_ENABLE_IT(&IMU_HUART, UART_IT_IDLE);
-//	HAL_UART_Receive_DMA(&IMU_HUART, dma_imu_buf, DMA_IMU_LEN);
+	__HAL_UART_CLEAR_IDLEFLAG(&IMU_HUART);
+	__HAL_UART_ENABLE_IT(&IMU_HUART, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(&IMU_HUART, dma_imu_buf, DMA_IMU_LEN);
 	
 	__HAL_UART_CLEAR_IDLEFLAG(&UBUNTU_USART);
 	__HAL_UART_ENABLE_IT(&UBUNTU_USART, UART_IT_IDLE);
@@ -38,6 +42,7 @@ void user_uart_IRQHandle(UART_HandleTypeDef *huart)
 		HAL_UART_DMAStop(huart);															//停止本次DMA运输
 		user_uart_IDLECallback(huart);                        //调用串口功能回调函数
 	}
+
 }
 
 
@@ -93,6 +98,14 @@ void user_uart_IDLECallback(UART_HandleTypeDef *huart)
 		HAL_UART_Receive_DMA(&PC_CMD_USART, dma_pc_cmd_buff, PC_CMD_LEN);
 	}
 
+	if(huart->Instance== UART7)
+	{
+			uint16_t length_data = 0;
+			length_data = DMA_IMU_LEN - __HAL_DMA_GET_COUNTER(&hdma_uart7_rx);
+			xsens_callback_handle(dma_imu_buf,length_data);
+
+			HAL_UART_Receive_DMA(huart, dma_imu_buf, DMA_IMU_LEN);
+	}
 }
 
 //#ifdef __GNUC__

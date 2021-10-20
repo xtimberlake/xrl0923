@@ -4,10 +4,14 @@
 #include "usart.h"
 #include "robot_task.h"
 #include "communicating_task.h"
+#include "bsp_xsens.h"
+
+#define IMU_HUART huart7
 
 //#define PRINTF_USART huart6
 #define UBUNTU_USART huart6
 #define DMA_UBUNTU_LEN 150
+#define DMA_IMU_LEN 150
 #define PC_CMD_USART huart8
 #define PC_CMD_LEN 1
 
