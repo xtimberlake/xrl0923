@@ -57,10 +57,10 @@ void robot_task(void *argument)
 		}
 		case WORKING:
 		{
-			robot.leftLeg.x_ref =0;
-			robot.leftLeg.y_ref = 920;
-			robot.rightLeg.x_ref = 0;
-			robot.rightLeg.y_ref = 920;
+			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
 			robot_acting();
 			break;
 		}

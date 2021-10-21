@@ -6,7 +6,10 @@
  */
 
 #include "lib_walking.h"
+#include "bsp_xsens.h"
 bezier_control_points_TypeDef bezier_ctrl_pts;
+
+#define _IMU_MODIFIED 1
 
 void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,float lambda,float _v,float leg_lift_height,float body_hight)
 {
@@ -162,6 +165,8 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 	float distance = walkpara.T_s/2 * walkpara._v;
 	float bezier_info; // bezier_info is the Bezier factor belongs to [0, 1]
 	int gait_phase;
+	float temp_x;
+	float temp_y;
 
 
 	if(time>=0 && time < walkpara.T_s*walkpara.lambda) gait_phase = STANCE_PHASE;
@@ -172,9 +177,8 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 	    case STANCE_PHASE:
 	    {
 	    	bezier_info =  time/(walkpara.T_s*walkpara.lambda);
-	    	*x_ref = - distance * bezier_info + walkpara.trajectory_centreX + 0.5 * distance;
-	    	*y_ref = walkpara.trajectory_centreY + walkpara.sinoid_amp * sin(bezier_info * M_PI);
-
+	    	temp_x = - distance * bezier_info + walkpara.trajectory_centreX + 0.5 * distance;
+			temp_y = walkpara.trajectory_centreY + walkpara.sinoid_amp * sin(bezier_info * M_PI);
 
 	    break;}
 	    case SWING_PHASE:
@@ -189,8 +193,9 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.preSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.preSwing_x, bezier_ctrl_pts.preSwing_y, dim, bezier_info*2);
-	      	    	  *x_ref = pts[X];
-	      	    	  *y_ref = pts[Y];
+	      	    	  temp_x = pts[X];
+	      	    	  temp_y = pts[Y];
+
 	      	      }
 	      	      else
 	      	      {
@@ -198,8 +203,8 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.postSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.postSwing_x, bezier_ctrl_pts.postSwing_y, dim, bezier_info*2 - 1);
-	      	    	  *x_ref = pts[X];
-	      	    	  *y_ref = pts[Y];
+	      	    	  temp_x = pts[X];
+	      	    	  temp_y = pts[Y];
 
 	      	      }
 
@@ -207,6 +212,14 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 	    default: break;
 
 	  }
+
+#if _IMU_MODIFIED==1
+	  *x_ref = temp_x * cos(xsens_data.pitch * M_PI / 180.0f) + temp_y * sin(xsens_data.pitch * M_PI / 180.0f);
+	  *y_ref = temp_x * -sin(xsens_data.pitch * M_PI / 180.0f) + temp_y * cos(xsens_data.pitch * M_PI / 180.0f);
+#else
+	  *x_ref = temp_x;
+	  *y_ref = temp_y;
+#endif
 
 }
 
