@@ -90,6 +90,7 @@ typedef struct
     float ref_position;
     float ref_torque;
     float ref_cmd;
+    float ref_velocity;
     //current feedback data
 	float curr_position;
 	float curr_speed_radps;

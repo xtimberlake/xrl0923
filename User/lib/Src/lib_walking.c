@@ -23,7 +23,7 @@ void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,f
 	walkpara->push_height = 20.0;
 	walkpara->sinoid_amp = 12.0;
 
-	walkpara->trajectory_centreX = 0.0;
+	walkpara->trajectory_centreX = -50.0;
 	walkpara->trajectory_centreY = body_hight;
 }
 
@@ -160,7 +160,8 @@ void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef 
 
 }
 
-void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara)
+void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref, \
+						float time, walkingPara_TypeDef walkpara)
 {
 	float distance = walkpara.T_s/2 * walkpara._v;
 	float bezier_info; // bezier_info is the Bezier factor belongs to [0, 1]
@@ -178,7 +179,9 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 	    {
 	    	bezier_info =  time/(walkpara.T_s*walkpara.lambda);
 	    	temp_x = - distance * bezier_info + walkpara.trajectory_centreX + 0.5 * distance;
-			temp_y = walkpara.trajectory_centreY + walkpara.sinoid_amp * sin(bezier_info * M_PI);
+			temp_y = walkpara.modified_trajectory_centreY + walkpara.sinoid_amp * sin(bezier_info * M_PI);
+			*dx_ref = - distance / (walkpara.lambda*walkpara.T_s);
+			*dy_ref = walkpara.sinoid_amp * cos(bezier_info * M_PI) / (walkpara.lambda*walkpara.T_s);
 
 	    break;}
 	    case SWING_PHASE:
@@ -189,22 +192,26 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 
 	      	      if(bezier_info < 0.5)
 	      	      {
-	      	    	  calcu_ctrl_pts(CALC_PRE_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
+	      	    	  calcu_ctrl_pts(CALC_PRE_SWING, walkpara.trajectory_centreX, walkpara.modified_trajectory_centreY, \
 	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.preSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.preSwing_x, bezier_ctrl_pts.preSwing_y, dim, bezier_info*2);
 	      	    	  temp_x = pts[X];
 	      	    	  temp_y = pts[Y];
+	      	    	  *dx_ref = pts[DX]/((1.0-walkpara.lambda)*walkpara.T_s);
+	      	    	  *dy_ref = pts[DY]/((1.0-walkpara.lambda)*walkpara.T_s);
 
 	      	      }
 	      	      else
 	      	      {
-	      	    	  calcu_ctrl_pts(CALC_POST_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
+	      	    	  calcu_ctrl_pts(CALC_POST_SWING, walkpara.trajectory_centreX, walkpara.modified_trajectory_centreY, \
 	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.postSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.postSwing_x, bezier_ctrl_pts.postSwing_y, dim, bezier_info*2 - 1);
 	      	    	  temp_x = pts[X];
 	      	    	  temp_y = pts[Y];
+	      	    	  *dx_ref = pts[DX]/((1.0-walkpara.lambda)*walkpara.T_s);
+	      	    	  *dy_ref = pts[DY]/((1.0-walkpara.lambda)*walkpara.T_s);
 
 	      	      }
 
@@ -212,6 +219,7 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_Type
 	    default: break;
 
 	  }
+
 
 #if _IMU_MODIFIED==1
 	  *x_ref = temp_x * cos(xsens_data.pitch * M_PI / 180.0f) + temp_y * sin(xsens_data.pitch * M_PI / 180.0f);

@@ -15,21 +15,35 @@
  * Parameter 2: y of control point(s)
  * Parameter 3: number of control points
  * Parameter 3: the factor in [0, 1]
- * Return : current point coordinate
+ * Return : current point coordinate & velocity
  */
 float* bezier_generate(float control_pts_x[], float control_pts_y[], uint16_t length, float u)
 {
-	static float pt[2];
+	static float pt[4];
 	uint16_t n = length - 1; // the order of Bezier curve
 
 	float B_n[length];
+	float B_n_n[length-1];
 	for (uint16_t i = 0; i < length; i++)
 	{
 		B_n[i] = ploy_B_u(n, i, u);
 	}
 
+	float diff_x[length-1];
+	float diff_y[length-1];
+	for (uint16_t i = 0; i < length-1; i++)
+	{
+			B_n_n[i] = n * B_n[i];
+			diff_x[i] = control_pts_x[i+1] - control_pts_x[i];
+			diff_y[i] = control_pts_y[i+1] - control_pts_y[i];
+	}
+
+
 	pt[X] = dot_c(control_pts_x, B_n, length);
 	pt[Y] = dot_c(control_pts_y, B_n, length);
+	pt[DX] = dot_c(diff_x, B_n_n, length-1);
+	pt[DY] = dot_c(diff_y, B_n_n, length-1);
+
 
 	return pt;
 

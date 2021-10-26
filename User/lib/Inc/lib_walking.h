@@ -20,7 +20,7 @@ typedef struct
     float trajectory_centreX;
     float trajectory_centreY;
 
-
+    float modified_trajectory_centreY;
 } walkingPara_TypeDef;
 
 typedef struct
@@ -56,7 +56,8 @@ void troting(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara
 float Interpolate_cubicBezier(float y0, float yf, float x);
 float sature(float value,float maxvalue,float minvalue);\
 void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara);
-void bezier_sin_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara);
+void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref, \
+						float time, walkingPara_TypeDef walkpara);
 void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h, float push_h);
 
 #endif

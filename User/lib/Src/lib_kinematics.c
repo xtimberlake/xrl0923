@@ -65,3 +65,26 @@ float* contact_force_estimate(float theta1, float theta2, float tau1, float tau2
 
 }
 
+float* calcu_dq(float theta1, float theta2, float dx, float dy, float a1, float a2)
+{
+	float c1, s1, s2, s1_2, c1_2;
+	c1 = cos(theta1);
+	s1 = sin(theta1);
+	s2 = sin(theta2);
+	s1_2 = sin(theta1 - theta2);
+	c1_2 = cos(theta1 - theta2);
+
+	float J_INV[2][2];
+	J_INV[0][0] = -c1_2 / (a1 * s2);
+	J_INV[0][1] = -s1_2 / (a1 * s2);
+	J_INV[1][0] = (a1 * c1 + a2 * c1_2) / (a1 * a2 * s2);
+	J_INV[1][1] = (a1 * s1 + a2 * s1_2) / (a1 * a2 * s2);
+
+	static float dq[2];
+	dq[0] = J_INV[0][0] * dx + J_INV[0][1] * dy;
+	dq[1] = J_INV[1][0] * dx + J_INV[1][1] * dy;
+
+	return dq;
+
+
+}

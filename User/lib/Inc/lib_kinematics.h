@@ -13,11 +13,14 @@ enum
 enum
 {
 	X = 0,
-	Y = 1
+	Y = 1,
+	DX = 2,
+	DY = 3
 };
 
 
 float* inverse_kinematics(float L1, float L2, float x_ref, float z_ref);
 float* contact_force_estimate(float theta1, float theta2, float tau1, float tau2, float a1, float a2);
+float* calcu_dq(float theta1, float theta2, float tau1, float tau2, float a1, float a2);
 
 #endif

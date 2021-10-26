@@ -5,6 +5,7 @@
  *      Author: haoyun
  */
 #include "robot_task.h"
+#include "bsp_xsens.h"
 
 impedance_t impd_left_hip_diff;
 impedance_t impd_left_knee_diff;
@@ -20,6 +21,9 @@ admittance_t admt_left_x_diff;
 admittance_t admt_left_y_diff;
 admittance_t admt_right_x_diff;
 admittance_t admt_right_y_diff;
+
+pid_pkg pid_robot_height;
+pid_pkg pid_kv;
 
 void robot_task(void *argument)
 {
@@ -41,6 +45,12 @@ void robot_task(void *argument)
 
 	walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,150,920);
 
+	PID_struct_init(&pid_robot_height, DELTA_PID, 0.5, 0, 0.1, 0.0, 0.07);
+	pid_robot_height.deadband = 1.0;
+	robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
+
+	PID_struct_init(&pid_kv, POSITION_PID, 10, 0.0, 0.01, 0, 0);
+
   /* Infinite loop */
   for(;;)
   {
@@ -61,6 +71,7 @@ void robot_task(void *argument)
 			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
 			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
 			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
 			robot_acting();
 			break;
 		}
@@ -82,12 +93,17 @@ void robot_task(void *argument)
 //				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
 //			}
 
-			bezier_sin_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, robot.walkingParam._t, robot.walkingParam);
+			posture_controller(xsens_data.pitch);
+
+			bezier_sin_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, &robot.leftLeg.dx_ref, &robot.leftLeg.dy_ref \
+							,robot.walkingParam._t, robot.walkingParam);
 			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
-				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
+				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref \
+							,robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
 			}
 			else{
-				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
+				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref \
+							,robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
 			}
 
 			if(robot.walkingParam._t>=robot.walkingParam.T_s){
@@ -126,24 +142,31 @@ void robot_sensing()
 	//left
 	float* f_left = contact_force_estimate(phi_left_1 + M_PI_2, \
 											phi_left_1 + phi_left_2, \
-											-leftHip_Motor.curr_torque, leftKnee_Motor.curr_torque, \
+											-leftHip_Motor.average_torque, leftKnee_Motor.average_torque, \
 											LENGTH_HIP_LINK/1000, LENGTH_KNEE_LINK/1000);
-	robot.leftLeg.fx = f_left[X];
-	robot.leftLeg.fy = f_left[Y];
+	robot.leftLeg.fx = -f_left[X];
+	robot.leftLeg.fy = -f_left[Y];
 
 	//right
 	float* f_right = contact_force_estimate(phi_right_1 + M_PI_2, \
 										phi_right_1 + phi_right_2, \
-										rightHip_Motor.curr_torque, -rightKnee_Motor.curr_torque, \
+										rightHip_Motor.average_torque, -rightKnee_Motor.average_torque, \
 										LENGTH_HIP_LINK/1000, LENGTH_KNEE_LINK/1000);
 
-	robot.rightLeg.fx = f_right[X];
-	robot.rightLeg.fy = f_right[Y];
+	robot.rightLeg.fx = -f_right[X];
+	robot.rightLeg.fy = -f_right[Y];
 
 }
 
 void robot_acting()
 {
+	float phi_left_1, phi_left_2;
+	float phi_right_1, phi_right_2;
+	//电机角度补偿计算
+	phi_left_1 = leftHip_Motor.assemble_bias - leftHip_Motor.curr_position;
+	phi_left_2 = leftKnee_Motor.assemble_bias - leftKnee_Motor.curr_position;
+	phi_right_1 = rightHip_Motor.curr_position + rightHip_Motor.assemble_bias;
+	phi_right_2 = rightKnee_Motor.curr_position + rightKnee_Motor.assemble_bias;
 	//robot_leg_admittance_ctrller();
 
 	//注意调用完左腿ik后立即使用ang_left,否则会被右腿ik覆盖
@@ -151,11 +174,18 @@ void robot_acting()
 	leftHip_Motor.ref_position = -ang_left[0] + leftHip_Motor.assemble_bias;
 	leftKnee_Motor.ref_position = -ang_left[1] + leftKnee_Motor.assemble_bias ;
 
+	float* dq_left = calcu_dq(phi_left_1 + M_PI_2, phi_left_1 + phi_left_2, robot.leftLeg.dx_ref, robot.leftLeg.dy_ref, \
+			LENGTH_HIP_LINK/1000, LENGTH_KNEE_LINK/1000);
+	leftHip_Motor.ref_velocity = dq_left[0];
+	leftKnee_Motor.ref_velocity = dq_left[1];
 
 	float* ang_right = inverse_kinematics(LENGTH_HIP_LINK, LENGTH_KNEE_LINK, robot.rightLeg.x_ref, robot.rightLeg.y_ref);
 	rightHip_Motor.ref_position = ang_right[0] - rightHip_Motor.assemble_bias;
 	rightKnee_Motor.ref_position = ang_right[1] - rightKnee_Motor.assemble_bias;
-
+	float* dq_right = calcu_dq(phi_right_1 + M_PI_2, phi_right_1 + phi_right_2, robot.rightLeg.dx_ref, robot.rightLeg.dy_ref, \
+			LENGTH_HIP_LINK/1000, LENGTH_KNEE_LINK/1000);
+	rightHip_Motor.ref_velocity = dq_right[0];
+	rightKnee_Motor.ref_velocity = dq_right[1];
 	//robot_impedance_ctrller();
 
 //	robot_admittance_ctrller();
@@ -242,3 +272,16 @@ void robot_leg_admittance_ctrller(void)
 	admittance_calc(&admt_right_y_diff, robot.rightLeg.fy, robot.rightLeg.y_ref);
 	robot.rightLeg.y_cmd = robot.rightLeg.y_ref-admt_right_y_diff.ed;
 }
+
+void posture_controller(float theta)
+{
+	//dy = PID(-theta)
+	// acutal_trajactory_center_y =
+	pid_calc(&pid_robot_height, theta, 0.0);
+	robot.walkingParam.modified_trajectory_centreY += 0.1 * pid_robot_height.delta_out;
+	robot.walkingParam.modified_trajectory_centreY  = sature(robot.walkingParam.modified_trajectory_centreY ,\
+			950, 800);
+
+}
+
+

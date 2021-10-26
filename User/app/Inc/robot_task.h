@@ -6,6 +6,7 @@
 #include "lib_walking.h"
 #include "lib_impd.h"
 #include "lib_admittance.h"
+#include "lib_pid.h"
 
 //#define LENGTH_HIP_LINK 625.0f
 //#define LENGTH_KNEE_LINK 520.0f
@@ -27,7 +28,8 @@ typedef enum
 typedef struct
 {
   float x,y;
-  float x_ref,y_ref;
+  float x_ref,y_ref;	// reference position
+  float dx_ref,dy_ref;	// reference velocity
   float x_cmd,y_cmd;
   float fx, fy;
   float fx_ref, fy_ref;
@@ -58,6 +60,7 @@ void robot_acting(void);
 void robot_impedance_ctrller(void);
 void robot_admittance_ctrller(void);
 void robot_leg_admittance_ctrller(void);
+void posture_controller(float theta);
 
 //lib_kinematics.c文件的函数
 extern void leg_forward_kinematics(leg_side_t* l, float L1, float L2, float phi_1, float phi_2);
