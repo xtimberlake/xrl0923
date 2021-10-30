@@ -11,20 +11,20 @@ bezier_control_points_TypeDef bezier_ctrl_pts;
 
 #define _IMU_MODIFIED 1
 
-void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,float lambda,float _v,float leg_lift_height,float body_hight)
+void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,float lambda,float _v,float leg_lift_height,float body_height)
 {
 	walkpara->T_s=T_s;
 	walkpara->_t=_t;
 	walkpara->lambda=lambda;
 	walkpara->_v=_v;
 	walkpara->leg_lift_height=leg_lift_height;
-	walkpara->body_hight=body_hight;
+	walkpara->body_hight=body_height;
 
-	walkpara->push_height = 20.0;
-	walkpara->sinoid_amp = 12.0;
+	walkpara->push_height = 10.0;
+	walkpara->sinoid_amp = 10.0;
 
-	walkpara->trajectory_centreX = -50.0;
-	walkpara->trajectory_centreY = body_hight;
+	walkpara->trajectory_centreX = -20.0;
+	walkpara->trajectory_centreY = body_height;
 }
 
 

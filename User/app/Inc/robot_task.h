@@ -12,7 +12,7 @@
 //#define LENGTH_KNEE_LINK 520.0f
 
 #define LENGTH_HIP_LINK 580.0f
-#define LENGTH_KNEE_LINK 520.0f
+#define LENGTH_KNEE_LINK 470.0f
 
 
 //定义机器人状态
@@ -61,6 +61,7 @@ void robot_impedance_ctrller(void);
 void robot_admittance_ctrller(void);
 void robot_leg_admittance_ctrller(void);
 void posture_controller(float theta);
+
 
 //lib_kinematics.c文件的函数
 extern void leg_forward_kinematics(leg_side_t* l, float L1, float L2, float phi_1, float phi_2);

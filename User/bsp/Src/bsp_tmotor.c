@@ -33,6 +33,8 @@ tmotor_handle_t rightHip_Motor;
 tmotor_handle_t rightKnee_Motor;
 tmotor_handle_t test_Motor;
 
+motor_parms_t m;
+
 void tmotor_init(tmotor_handle_t* m, uint8_t id,\
 				  float assemble_bias, \
 				  float speed_max, \
@@ -41,7 +43,7 @@ void tmotor_init(tmotor_handle_t* m, uint8_t id,\
 {
 	m->id =id;
 	m->assemble_bias = assemble_bias;
-	m->speed_max = 4.0;
+	m->speed_max = speed_max;
 	m->Kp_theta = Kp_theta;
 	m->Kd_theta = Kd_theta;
 	m->Kp_v = Kp_v;
@@ -60,29 +62,41 @@ void tmotor_init(tmotor_handle_t* m, uint8_t id,\
 void pkg_tmotor_init()
 {
 
+	m.h_kp_theta = 70.0f;
+	m.h_kd_theta = 10.0f;
+	m.h_kp_v = 80.0f;
+	m.h_ki_v = 0.001;
+	m.h_kd_v = 0.0f;
+
+	m.k_kp_theta = 60.0f;
+	m.k_kd_theta = 10.0f;
+	m.k_kp_v = 80.0f;
+	m.k_ki_v = 0.001f;
+	m.k_kd_v = 0.0f;
+
 	tmotor_init(&leftHip_Motor, LEFT_HIP_MOTOR_ID, \
 				HIP_MOTOR_OFFSET, \
-				5.0, \
-				70.0, 10.0, \
-				40.0, 0.001, 0.0);
+				8.5, \
+				m.h_kp_theta, m.h_kd_theta, \
+				m.h_kp_v, m.h_ki_v, m.h_kd_v);
 
 	tmotor_init(&leftKnee_Motor, LEFT_KNEE_MOTOR_ID, \
 				KNEE_MOTOR_OFFSET, \
-				5.0, \
-				52.0, 10.0, \
-				40.0, 0.001, 0.0);
+				8.5, \
+				m.k_kp_theta, m.k_kd_theta, \
+				m.k_kp_v, m.k_ki_v, m.k_kd_v);
 
 	tmotor_init(&rightHip_Motor, RIGHT_HIP_MOTOR_ID, \
 			    HIP_MOTOR_OFFSET, \
-				5.0, \
-				70.0, 10.0, \
-				40.0, 0.001, 0.0);
+				8.5, \
+				m.h_kp_theta, m.h_kd_theta, \
+				m.h_kp_v, m.h_ki_v, m.h_kd_v);
 
 	tmotor_init(&rightKnee_Motor, RIGHT_KNEE_MOTOR_ID, \
 				KNEE_MOTOR_OFFSET, \
-				5.0, \
-				52.0, 10.0, \
-				40.0, 0.001, 0.0);
+				8.5, \
+				m.k_kp_theta, m.k_kd_theta, \
+				m.k_kp_v, m.k_ki_v, m.k_kd_v);
 	
 
 }
@@ -146,18 +160,22 @@ void tmotor_set_position(uint8_t id, float p_des, float kp)
 	case LEFT_HIP_MOTOR_ID:
 		{tmotor_serial_mode_send_cmd(id, p_des, leftHip_Motor.speed_max, kp,\
 				leftHip_Motor.Kd_theta, leftHip_Motor.Kp_v, leftHip_Motor.Kd_v, leftHip_Motor.Ki_v);
+		calculatee_ref_radps(&leftHip_Motor);
 		break;}
 	case LEFT_KNEE_MOTOR_ID:
 		{tmotor_serial_mode_send_cmd(id, p_des, leftKnee_Motor.speed_max, kp,\
 				leftKnee_Motor.Kd_theta, leftKnee_Motor.Kp_v, leftKnee_Motor.Kd_v, leftKnee_Motor.Ki_v);
+		calculatee_ref_radps(&leftKnee_Motor);
 		break;}
 	case RIGHT_HIP_MOTOR_ID:
 		{tmotor_serial_mode_send_cmd(id, p_des, rightHip_Motor.speed_max, kp,\
 				rightHip_Motor.Kd_theta, rightHip_Motor.Kp_v, rightHip_Motor.Kd_v, rightHip_Motor.Ki_v);
+		calculatee_ref_radps(&rightHip_Motor);
 		break;}
 	case RIGHT_KNEE_MOTOR_ID:
 		{tmotor_serial_mode_send_cmd(id, p_des, rightKnee_Motor.speed_max, kp,\
 				rightKnee_Motor.Kd_theta, rightKnee_Motor.Kp_v, rightKnee_Motor.Kd_v, rightKnee_Motor.Ki_v);
+		calculatee_ref_radps(&rightKnee_Motor);
 		break;}
 	}
 
@@ -170,6 +188,16 @@ void test_motor_set_position(float p_des, float kp)
 	tmotor_serial_mode_send_cmd(test_ID, p_des, test_Motor.speed_max, kp,\
 						test_Motor.Kd_theta, test_Motor.Kp_v, test_Motor.Kd_v, test_Motor.Ki_v);
 
+}
+
+void calculatee_ref_radps(tmotor_handle_t* motor)
+{
+	motor->pos_err[NOW] = (motor->ref_position - motor->curr_position);
+	motor->dpos_err = motor->pos_err[NOW] - motor->pos_err[LAST];
+	motor->calc_speed_radps = 0.1 * motor->Kp_theta * (motor->ref_position - motor->curr_position) \
+								+ 0.1 * motor->Kp_v * (motor->dpos_err);
+
+	motor->pos_err[LAST] = motor->pos_err[NOW];
 }
 
 /**
@@ -282,6 +310,33 @@ void tmotor_serial_mode_send_cmd(HipMotorID_TypeDef tID,float p_des, float v_des
 
 }
 
+void motor_param_change()
+{
+	leftHip_Motor.Kp_theta = m.h_kp_theta;
+	leftHip_Motor.Kd_theta = m.h_kd_theta;
+	leftHip_Motor.Kp_v = m.h_kp_v;
+	leftHip_Motor.Ki_v = m.h_ki_v;
+	leftHip_Motor.Kd_v = m.h_kd_v;
+
+	leftKnee_Motor.Kp_theta = m.k_kp_theta;
+	leftKnee_Motor.Kd_theta = m.k_kd_theta;
+	leftKnee_Motor.Kp_v = m.k_kp_v;
+	leftKnee_Motor.Ki_v = m.k_ki_v;
+	leftKnee_Motor.Kd_v = m.k_kd_v;
+
+	rightHip_Motor.Kp_theta = m.h_kp_theta;
+	rightHip_Motor.Kd_theta = m.h_kd_theta;
+	rightHip_Motor.Kp_v = m.h_kp_v;
+	rightHip_Motor.Ki_v = m.h_ki_v;
+	rightHip_Motor.Kd_v = m.h_kd_v;
+
+	rightKnee_Motor.Kp_theta = m.k_kp_theta;
+	rightKnee_Motor.Kd_theta = m.k_kd_theta;
+	rightKnee_Motor.Kp_v = m.k_kp_v;
+	rightKnee_Motor.Ki_v = m.k_ki_v;
+	rightKnee_Motor.Kd_v = m.k_kd_v;
+
+}
 
 void unpackCanInfoFromMotor(uint8_t* data, tmotor_handle_t* motor)
 {

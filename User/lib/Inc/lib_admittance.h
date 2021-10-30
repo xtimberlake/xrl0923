@@ -17,9 +17,10 @@ typedef struct __ramp_t
 
 typedef struct __admittance_t
 {
-	float x0; //修正前变量
-	float xf; //修正后变量
-	float ed; //修正误差
+	float x0;  //修正前变量
+	float dx0; //修正前速度
+	float xf;  //修正后变量
+	float ed;  //修正误差
 
 	float f_ext;   //外界力
 	float dot_ed;  //输出目标误差导数
@@ -36,7 +37,7 @@ typedef struct __admittance_t
 }admittance_t;
 
 void admittance_struct_init(admittance_t* admt, float Kd, float Bd, float MaxOutput, float deadband);
-float admittance_calc(admittance_t* admt, float f_ext, float x0); //这个x_f要有初始值，死区内让x_f等于x0
+float admittance_calc(admittance_t* admt, float f_ext, float x0, float dx0); //这个x_f要有初始值，死区内让x_f等于x0
 float ramp_calc(ramp_t *rp, float src, float dest);
 
 #endif

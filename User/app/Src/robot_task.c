@@ -43,7 +43,7 @@ void robot_task(void *argument)
 	admittance_struct_init(&admt_right_x_diff, 0.2, 4, 150.0, 5.0);
 	admittance_struct_init(&admt_right_y_diff, 0.2, 4, 150.0, 5.0);
 
-	walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,150,920);
+	walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,75,960);
 
 	PID_struct_init(&pid_robot_height, DELTA_PID, 0.5, 0, 0.1, 0.0, 0.07);
 	pid_robot_height.deadband = 1.0;
@@ -54,6 +54,7 @@ void robot_task(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	motor_param_change();
 	//robot_sensing();
 	switch(robot.state)
 	{
@@ -71,7 +72,12 @@ void robot_task(void *argument)
 			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
 			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
 			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
-			robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
+			robot.leftLeg.dx_ref = 0;
+			robot.leftLeg.dy_ref = 0;
+			robot.rightLeg.dx_ref = 0;
+			robot.rightLeg.dy_ref = 0;
+
+			posture_controller(xsens_data.pitch);
 			robot_acting();
 			break;
 		}
@@ -238,40 +244,40 @@ void robot_impedance_ctrller(void)
 		rightKnee_Motor.ref_position += impd_right_knee_diff.pos_out;
 }
 
-void robot_admittance_ctrller(void)
-{
-	admittance_calc(&admt_right_hip_diff, rightHip_Motor.average_torque, rightHip_Motor.ref_position);
-	rightHip_Motor.ref_cmd = rightHip_Motor.ref_position - admt_right_hip_diff.ed;
-
-	//rightHip_Motor.ref_cmd = rightHip_Motor.ref_position;
-
-	rightKnee_Motor.ref_cmd = rightKnee_Motor.ref_position;
-//	admittance_calc(&admt_right_knee_diff, rightKnee_Motor.average_torque, rightKnee_Motor.ref_position);
-//	rightKnee_Motor.ref_cmd = rightKnee_Motor.ref_position - admt_right_knee_diff.ed;
-
-	admittance_calc(&admt_left_hip_diff, leftHip_Motor.average_torque, leftHip_Motor.ref_position);
-	leftHip_Motor.ref_cmd = leftHip_Motor.ref_position - admt_left_hip_diff.ed;
-	//leftHip_Motor.ref_cmd = leftHip_Motor.ref_position;
-
-	leftKnee_Motor.ref_cmd = leftKnee_Motor.ref_position;
-//	admittance_calc(&admt_left_knee_diff, leftKnee_Motor.average_torque, leftKnee_Motor.ref_position);
-//	leftKnee_Motor.ref_cmd = leftKnee_Motor.ref_position - admt_left_knee_diff.ed;
-
-}
-void robot_leg_admittance_ctrller(void)
-{
-	admittance_calc(&admt_left_x_diff, robot.leftLeg.fx, robot.leftLeg.x_ref);
-	robot.leftLeg.x_cmd = robot.leftLeg.x_ref-admt_left_x_diff.ed;
-
-	admittance_calc(&admt_left_y_diff, robot.leftLeg.fy, robot.leftLeg.y_ref);
-	robot.leftLeg.y_cmd = robot.leftLeg.y_ref-admt_left_y_diff.ed;
-
-	admittance_calc(&admt_right_x_diff, robot.rightLeg.fx, robot.rightLeg.x_ref);
-	robot.rightLeg.x_cmd = robot.rightLeg.x_ref-admt_right_x_diff.ed;
-
-	admittance_calc(&admt_right_y_diff, robot.rightLeg.fy, robot.rightLeg.y_ref);
-	robot.rightLeg.y_cmd = robot.rightLeg.y_ref-admt_right_y_diff.ed;
-}
+//void robot_admittance_ctrller(void)
+//{
+//	admittance_calc(&admt_right_hip_diff, rightHip_Motor.average_torque, rightHip_Motor.ref_position);
+//	rightHip_Motor.ref_cmd = rightHip_Motor.ref_position - admt_right_hip_diff.ed;
+//
+//	//rightHip_Motor.ref_cmd = rightHip_Motor.ref_position;
+//
+//	rightKnee_Motor.ref_cmd = rightKnee_Motor.ref_position;
+////	admittance_calc(&admt_right_knee_diff, rightKnee_Motor.average_torque, rightKnee_Motor.ref_position);
+////	rightKnee_Motor.ref_cmd = rightKnee_Motor.ref_position - admt_right_knee_diff.ed;
+//
+//	admittance_calc(&admt_left_hip_diff, leftHip_Motor.average_torque, leftHip_Motor.ref_position);
+//	leftHip_Motor.ref_cmd = leftHip_Motor.ref_position - admt_left_hip_diff.ed;
+//	//leftHip_Motor.ref_cmd = leftHip_Motor.ref_position;
+//
+//	leftKnee_Motor.ref_cmd = leftKnee_Motor.ref_position;
+////	admittance_calc(&admt_left_knee_diff, leftKnee_Motor.average_torque, leftKnee_Motor.ref_position);
+////	leftKnee_Motor.ref_cmd = leftKnee_Motor.ref_position - admt_left_knee_diff.ed;
+//
+//}
+//void robot_leg_admittance_ctrller(void)
+//{
+//	admittance_calc(&admt_left_x_diff, robot.leftLeg.fx, robot.leftLeg.x_ref);
+//	robot.leftLeg.x_cmd = robot.leftLeg.x_ref-admt_left_x_diff.ed;
+//
+//	admittance_calc(&admt_left_y_diff, robot.leftLeg.fy, robot.leftLeg.y_ref);
+//	robot.leftLeg.y_cmd = robot.leftLeg.y_ref-admt_left_y_diff.ed;
+//
+//	admittance_calc(&admt_right_x_diff, robot.rightLeg.fx, robot.rightLeg.x_ref);
+//	robot.rightLeg.x_cmd = robot.rightLeg.x_ref-admt_right_x_diff.ed;
+//
+//	admittance_calc(&admt_right_y_diff, robot.rightLeg.fy, robot.rightLeg.y_ref);
+//	robot.rightLeg.y_cmd = robot.rightLeg.y_ref-admt_right_y_diff.ed;
+//}
 
 void posture_controller(float theta)
 {
@@ -280,7 +286,7 @@ void posture_controller(float theta)
 	pid_calc(&pid_robot_height, theta, 0.0);
 	robot.walkingParam.modified_trajectory_centreY += 0.1 * pid_robot_height.delta_out;
 	robot.walkingParam.modified_trajectory_centreY  = sature(robot.walkingParam.modified_trajectory_centreY ,\
-			950, 800);
+			1045-robot.walkingParam.sinoid_amp, 895+robot.walkingParam.leg_lift_height);
 
 }
 

@@ -15,6 +15,7 @@
 
 #include "can.h"
 #include "cmsis_os.h"
+#include "lib_pid.h"
 
 
 #define TMotor_CAN hcan1
@@ -35,8 +36,8 @@
 //#define HIP_MOTOR_OFFSET 0.5330
 //#define KNEE_MOTOR_OFFSET 0.6570
 
-#define HIP_MOTOR_OFFSET 0.4973f
-#define KNEE_MOTOR_OFFSET 0.5611f
+#define HIP_MOTOR_OFFSET 0.3044f
+#define KNEE_MOTOR_OFFSET 0.3789f
 
 #define RIGHT_HIP_MAX_ANGLE 0.4738f
 #define RIGHT_HIP_MIN_ANGLE -0.5330f
@@ -95,6 +96,10 @@ typedef struct
 	float curr_position;
 	float curr_speed_radps;
 
+	float calc_speed_radps;
+	float pos_err[3];
+	float dpos_err;
+
 	float torque_buff[SMOOTH_NUM];
 	uint8_t buff_cnt;
 
@@ -111,6 +116,22 @@ typedef struct
  
 } tmotor_handle_t;
 
+typedef struct
+{
+	float h_kp_theta;
+	float h_kd_theta;
+	float h_kp_v;
+	float h_ki_v;
+	float h_kd_v;
+
+	float k_kp_theta;
+	float k_kd_theta;
+	float k_kp_v;
+	float k_ki_v;
+	float k_kd_v;
+} motor_parms_t;
+
+__TMOTOR_BSP_EXT motor_parms_t m;
 __TMOTOR_BSP_EXT tmotor_handle_t leftHip_Motor;
 __TMOTOR_BSP_EXT tmotor_handle_t leftKnee_Motor;
 __TMOTOR_BSP_EXT tmotor_handle_t rightHip_Motor;
@@ -141,6 +162,9 @@ void tmotor_serial_mode_send_cmd(HipMotorID_TypeDef tID,float p_des, float v_des
 
 void unpackCanInfoFromMotor(uint8_t* data, tmotor_handle_t* motor);
 void test_motor_set_position(float p_des, float kp);
+
+void calculatee_ref_radps(tmotor_handle_t* motor);
+void motor_param_change(void);
 
 float fmaxf(float x, float y);
 float fminf(float x, float y);

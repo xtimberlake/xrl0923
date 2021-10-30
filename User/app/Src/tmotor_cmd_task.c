@@ -32,6 +32,7 @@ void tmotorTask(void *argument)
 	  {
 
 		  TMotor_setMode(LEFT_HIP_MOTOR_ID, TMotor_Control_Mode);
+
 		  osDelay(1);
 		  TMotor_setMode(LEFT_KNEE_MOTOR_ID, TMotor_Control_Mode);
 		  osDelay(1);

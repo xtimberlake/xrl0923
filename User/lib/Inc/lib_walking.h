@@ -51,7 +51,7 @@ extern bezier_control_points_TypeDef bezier_ctrl_pts;
 
 
 
-void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,float lambda,float _v,float leg_lift_hight,float body_hight);
+void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,float lambda,float _v,float leg_lift_hight,float body_height);
 void troting(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara);
 float Interpolate_cubicBezier(float y0, float yf, float x);
 float sature(float value,float maxvalue,float minvalue);\

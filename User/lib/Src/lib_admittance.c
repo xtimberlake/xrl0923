@@ -9,10 +9,11 @@ void admittance_struct_init(admittance_t* admt, float Kd, float Bd, float MaxOut
 	admt->delte_t = 0.004;
 }
 
-float admittance_calc(admittance_t* admt, float f_ext, float x0)
+float admittance_calc(admittance_t* admt, float f_ext, float x0, float dx0)
 {
 	admt->f_ext = f_ext;
 	admt->x0 = x0;
+	admt->dx0 = dx0;
 //	if(ABS(admt->f_ext) < admt->deadband)
 //	{
 //		ramp_t rp = {admt->ed, 0.0, 0.002, -0.3, 0.3, 0.0}; //输入数据 输出数据 速度 限幅最小值 限幅最大值 输出
@@ -23,7 +24,7 @@ float admittance_calc(admittance_t* admt, float f_ext, float x0)
 //		return admt->ed;
 //	}
 
-	admt->dot_ed = (admt->f_ext - admt->Kd * (admt->x0 - admt->xf))/admt->Bd;
+	admt->dot_ed = -admt->dx0 + (admt->f_ext - admt->Kd * (admt->x0 - admt->xf))/admt->Bd;
 	admt->ed = admt->dot_ed * admt->delte_t + (admt->x0 - admt->xf);
 	abs_limit(&(admt->ed), admt->MaxOutput, 0);
 	admt->xf = admt->x0 - admt->ed;
