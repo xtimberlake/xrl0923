@@ -1,5 +1,6 @@
 #include "robot_sense.h"
 
+float threshold = 290.0f;
 
 void robot_sensingTask(void *argument)
 {
@@ -72,5 +73,17 @@ void robot_sensing(uint32_t t)
 
 	robot.rightLeg.fx = -f_right[X];
 	robot.rightLeg.fy = -f_right[Y];
+
+	contact_event_estimator();
+
+}
+
+void contact_event_estimator()
+{
+	if (robot.rightLeg.dy - robot.rightLeg.fy > threshold) {
+		htim12.Instance->CCR1 = 20000;
+	}
+	else
+		htim12.Instance->CCR1 = 0;
 
 }

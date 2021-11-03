@@ -44,8 +44,8 @@ void robot_params_init(void)
 
 		walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,75,960);
 
-		PID_struct_init(&pid_robot_height, DELTA_PID, 0.5, 0, 0.1, 0.0, 0.07);
-		pid_robot_height.deadband = 1.0;
+		PID_struct_init(&pid_robot_height, DELTA_PID, 100, 0, 7.0, 0.0, 1.5);
+		pid_robot_height.deadband = 0.3;
 		robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
 
 		PID_struct_init(&pid_kv, POSITION_PID, 10, 0.0, 0.01, 0, 0);
@@ -259,10 +259,11 @@ void posture_controller(float theta)
 {
 	//dy = PID(-theta)
 	// acutal_trajactory_center_y =
-	pid_calc(&pid_robot_height, theta, 0.0);
-	robot.walkingParam.modified_trajectory_centreY += 0.1 * pid_robot_height.delta_out;
+	robot.walkingParam.modified_trajectory_centreY += 0.001 * pid_calc(&pid_robot_height, theta, 0.0);
+//	robot.walkingParam.modified_trajectory_centreY  = sature(robot.walkingParam.modified_trajectory_centreY ,
+//			1045-robot.walkingParam.sinoid_amp, 895+robot.walkingParam.leg_lift_height);
 	robot.walkingParam.modified_trajectory_centreY  = sature(robot.walkingParam.modified_trajectory_centreY ,\
-			1045-robot.walkingParam.sinoid_amp, 895+robot.walkingParam.leg_lift_height);
+				1045-robot.walkingParam.sinoid_amp, 880+robot.walkingParam.leg_lift_height);
 
 }
 
