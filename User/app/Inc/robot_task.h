@@ -28,6 +28,8 @@ typedef enum
 typedef struct
 {
   float x,y;
+  float last_x,last_y;
+  float dx,dy;
   float x_ref,y_ref;	// reference position
   float dx_ref,dy_ref;	// reference velocity
   float x_cmd,y_cmd;
@@ -40,6 +42,7 @@ typedef struct
 
 typedef struct
 {
+  uint32_t sensing_t[3];
   robot_state_e state, last_state; //机器人运行状态
 
   walkingPara_TypeDef walkingParam;
@@ -53,9 +56,9 @@ typedef struct
 } robot_TypeDef;
 robot_TypeDef robot;
 
-
+void robot_params_init(void);
 void robot_task(void *argument);
-void robot_sensing(void);
+
 void robot_acting(void);
 void robot_impedance_ctrller(void);
 void robot_admittance_ctrller(void);

@@ -25,32 +25,45 @@ admittance_t admt_right_y_diff;
 pid_pkg pid_robot_height;
 pid_pkg pid_kv;
 
+void robot_params_init(void)
+{
+		impedance_struct_init(&impd_left_hip_diff, 0.2, 0.0, 0.3, 10);
+		impedance_struct_init(&impd_left_knee_diff, 0.2, 0.0, 0.3, 10);
+		impedance_struct_init(&impd_right_hip_diff, 0.2, 0.0, 0.3, 10);
+		impedance_struct_init(&impd_right_knee_diff, 0.2, 0.0, 0.3, 10);
+
+		admittance_struct_init(&admt_left_hip_diff, 220.0, 100.0, 0.1, 5.0);
+		admittance_struct_init(&admt_left_knee_diff, 220.0, 100.0, 0.1, 5.0);
+		admittance_struct_init(&admt_right_hip_diff, 220.0, 100.0, 0.1, 5.0);	//Kd 越小，返回速度更快
+		admittance_struct_init(&admt_right_knee_diff, 220.0, 100.0, 0.1, 5.0); //Bd减小，越柔顺
+
+		admittance_struct_init(&admt_left_x_diff, 0.2, 4, 150.0, 5.0);
+		admittance_struct_init(&admt_left_y_diff, 0.2, 4, 150.0, 5.0);
+		admittance_struct_init(&admt_right_x_diff, 0.2, 4, 150.0, 5.0);
+		admittance_struct_init(&admt_right_y_diff, 0.2, 4, 150.0, 5.0);
+
+		walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,75,960);
+
+		PID_struct_init(&pid_robot_height, DELTA_PID, 0.5, 0, 0.1, 0.0, 0.07);
+		pid_robot_height.deadband = 1.0;
+		robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
+
+		PID_struct_init(&pid_kv, POSITION_PID, 10, 0.0, 0.01, 0, 0);
+
+		robot.sensing_t[LAST] = HAL_GetTick();
+		robot.sensing_t[NOW] = HAL_GetTick();
+
+		robot.leftLeg.last_x = robot.leftLeg.x;
+		robot.leftLeg.last_y = robot.leftLeg.y;
+		robot.rightLeg.last_x = robot.rightLeg.x;
+		robot.rightLeg.last_y = robot.rightLeg.y;
+}
+
 void robot_task(void *argument)
 {
   /* USER CODE BEGIN robot_task */
-	impedance_struct_init(&impd_left_hip_diff, 0.2, 0.0, 0.3, 10);
-	impedance_struct_init(&impd_left_knee_diff, 0.2, 0.0, 0.3, 10);
-	impedance_struct_init(&impd_right_hip_diff, 0.2, 0.0, 0.3, 10);
-	impedance_struct_init(&impd_right_knee_diff, 0.2, 0.0, 0.3, 10);
 
-	admittance_struct_init(&admt_left_hip_diff, 220.0, 100.0, 0.1, 5.0);
-	admittance_struct_init(&admt_left_knee_diff, 220.0, 100.0, 0.1, 5.0);
-	admittance_struct_init(&admt_right_hip_diff, 220.0, 100.0, 0.1, 5.0);	//Kd 越小，返回速度更快
-	admittance_struct_init(&admt_right_knee_diff, 220.0, 100.0, 0.1, 5.0); //Bd减小，越柔顺
-
-	admittance_struct_init(&admt_left_x_diff, 0.2, 4, 150.0, 5.0);
-	admittance_struct_init(&admt_left_y_diff, 0.2, 4, 150.0, 5.0);
-	admittance_struct_init(&admt_right_x_diff, 0.2, 4, 150.0, 5.0);
-	admittance_struct_init(&admt_right_y_diff, 0.2, 4, 150.0, 5.0);
-
-	walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,75,960);
-
-	PID_struct_init(&pid_robot_height, DELTA_PID, 0.5, 0, 0.1, 0.0, 0.07);
-	pid_robot_height.deadband = 1.0;
-	robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
-
-	PID_struct_init(&pid_kv, POSITION_PID, 10, 0.0, 0.01, 0, 0);
-
+	robot_params_init();
   /* Infinite loop */
   for(;;)
   {
@@ -125,44 +138,7 @@ void robot_task(void *argument)
   /* USER CODE END robot_task */
 }
 
-/*!
- * Compute robot position and pose by reading sensors
- *
- * @param void
- */
-void robot_sensing()
-{
 
-	float phi_left_1, phi_left_2;
-	float phi_right_1, phi_right_2;
-	//电机角度补偿计算
-	phi_left_1 = leftHip_Motor.assemble_bias - leftHip_Motor.curr_position;
-	phi_left_2 = leftKnee_Motor.assemble_bias - leftKnee_Motor.curr_position;
-	phi_right_1 = rightHip_Motor.curr_position + rightHip_Motor.assemble_bias;
-	phi_right_2 = rightKnee_Motor.curr_position + rightKnee_Motor.assemble_bias;
-
-	leg_forward_kinematics(&robot.leftLeg, LENGTH_HIP_LINK, LENGTH_KNEE_LINK, phi_left_1, phi_left_2);
-	leg_forward_kinematics(&robot.rightLeg, LENGTH_HIP_LINK, LENGTH_KNEE_LINK, phi_right_1, phi_right_2);
-
-
-	//left
-	float* f_left = contact_force_estimate(phi_left_1 + M_PI_2, \
-											phi_left_1 + phi_left_2, \
-											-leftHip_Motor.average_torque, leftKnee_Motor.average_torque, \
-											LENGTH_HIP_LINK/1000, LENGTH_KNEE_LINK/1000);
-	robot.leftLeg.fx = -f_left[X];
-	robot.leftLeg.fy = -f_left[Y];
-
-	//right
-	float* f_right = contact_force_estimate(phi_right_1 + M_PI_2, \
-										phi_right_1 + phi_right_2, \
-										rightHip_Motor.average_torque, -rightKnee_Motor.average_torque, \
-										LENGTH_HIP_LINK/1000, LENGTH_KNEE_LINK/1000);
-
-	robot.rightLeg.fx = -f_right[X];
-	robot.rightLeg.fy = -f_right[Y];
-
-}
 
 void robot_acting()
 {

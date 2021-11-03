@@ -4,5 +4,6 @@
 #include "main.h"
 #include "robot_task.h"
 
+void robot_sensing(uint32_t t);
 
 #endif
