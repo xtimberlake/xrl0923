@@ -62,42 +62,42 @@ void tmotor_init(tmotor_handle_t* m, uint8_t id,\
 void pkg_tmotor_init()
 {
 
-	m.h_kp_theta = 75.0f;
+	m.h_kp_theta = 55.0f;
 	m.h_kd_theta = 10.0f;
 	m.h_kp_v = 80.0f;
-	m.h_ki_v = 0.001;
+	m.h_ki_v = 0.0f;
 	m.h_kd_v = 0.0f;
 
-	m.k_kp_theta = 120.0f;
+	m.k_kp_theta = 55.0f;
 	m.k_kd_theta = 10.0f;
-	m.k_kp_v = 90.0f;
-	m.k_ki_v = 0.001f;
+	m.k_kp_v = 80.0f;
+	m.k_ki_v = 0.0f;
 	m.k_kd_v = 0.0f;
 
 	tmotor_init(&leftHip_Motor, LEFT_HIP_MOTOR_ID, \
 				HIP_MOTOR_OFFSET, \
-				8.5, \
+				9.5, \
 				m.h_kp_theta, m.h_kd_theta, \
 				m.h_kp_v, m.h_ki_v, m.h_kd_v);
-
+	osDelay(5);
 	tmotor_init(&leftKnee_Motor, LEFT_KNEE_MOTOR_ID, \
 				KNEE_MOTOR_OFFSET, \
-				8.5, \
+				9.5, \
 				m.k_kp_theta, m.k_kd_theta, \
 				m.k_kp_v, m.k_ki_v, m.k_kd_v);
-
+	osDelay(5);
 	tmotor_init(&rightHip_Motor, RIGHT_HIP_MOTOR_ID, \
 			    HIP_MOTOR_OFFSET, \
-				8.5, \
+				9.5, \
 				m.h_kp_theta, m.h_kd_theta, \
 				m.h_kp_v, m.h_ki_v, m.h_kd_v);
-
+	osDelay(5);
 	tmotor_init(&rightKnee_Motor, RIGHT_KNEE_MOTOR_ID, \
 				KNEE_MOTOR_OFFSET, \
-				8.5, \
+				9.5, \
 				m.k_kp_theta, m.k_kd_theta, \
 				m.k_kp_v, m.k_ki_v, m.k_kd_v);
-	
+	osDelay(5);
 
 }
 
@@ -353,7 +353,7 @@ void unpackCanInfoFromMotor(uint8_t* data, tmotor_handle_t* motor)
 
 
 	motor->curr_position = uint_to_float(p_int,position_MIN,position_MAX,16);
-	motor->curr_speed_radps = uint_to_float(v_int,velocity_MIN,velocity_MAX,12);
+	motor->curr_speed_radps = 10*uint_to_float(v_int,velocity_MIN,velocity_MAX,12);
 	motor->curr_torque = uint_to_float(t_int,Torque_MIN,Torque_MAX,12);
 	motor->fault = (data[6] << 8) | data[7];
 

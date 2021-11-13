@@ -11,8 +11,8 @@
 //#define LENGTH_HIP_LINK 625.0f
 //#define LENGTH_KNEE_LINK 520.0f
 
-#define LENGTH_HIP_LINK 580.0f
-#define LENGTH_KNEE_LINK 470.0f
+#define LENGTH_HIP_LINK 510.0f
+#define LENGTH_KNEE_LINK 460.0f
 
 
 //定义机器人状态
@@ -30,8 +30,9 @@ typedef struct
   float x,y;
   float last_x,last_y;
   float dx,dy;
-  float x_ref,y_ref;	// reference position
-  float dx_ref,dy_ref;	// reference velocity
+  float x_ref,y_ref;		// reference position
+  float ad_x_ref, ad_y_ref; // reference position by admittance control
+  float dx_ref,dy_ref;		// reference velocity
   float x_cmd,y_cmd;
   float fx, fy;
   float fx_ref, fy_ref;
@@ -60,6 +61,9 @@ void robot_params_init(void);
 void robot_task(void *argument);
 
 void robot_acting(void);
+void normal_control(void);
+void admt_foot_point_control();
+void admt_foot_point_control2(uint32_t t);
 void robot_impedance_ctrller(void);
 void robot_admittance_ctrller(void);
 void robot_leg_admittance_ctrller(void);

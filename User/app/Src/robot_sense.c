@@ -1,6 +1,6 @@
 #include "robot_sense.h"
 
-float threshold = 290.0f;
+float threshold = 1000.0f;
 
 void robot_sensingTask(void *argument)
 {
@@ -22,10 +22,10 @@ void robot_sensingTask(void *argument)
  */
 void robot_sensing(uint32_t t)
 {
-	static uint32_t time_interval; // unit: ms
+	static uint32_t sensing_time_interval; // unit: ms
 	robot.sensing_t[NOW] = t;
 
-	time_interval = robot.sensing_t[NOW] - robot.sensing_t[LAST];
+	sensing_time_interval = robot.sensing_t[NOW] - robot.sensing_t[LAST];
 
 
 	float phi_left_1, phi_left_2;
@@ -39,12 +39,12 @@ void robot_sensing(uint32_t t)
 	leg_forward_kinematics(&robot.leftLeg, LENGTH_HIP_LINK, LENGTH_KNEE_LINK, phi_left_1, phi_left_2);
 	leg_forward_kinematics(&robot.rightLeg, LENGTH_HIP_LINK, LENGTH_KNEE_LINK, phi_right_1, phi_right_2);
 
-	if(time_interval >= 10)
+	if(sensing_time_interval >= 10)
 		{
-			robot.leftLeg.dx = (robot.leftLeg.x - robot.leftLeg.last_x)*1000/time_interval;
-			robot.leftLeg.dy = (robot.leftLeg.y - robot.leftLeg.last_y)*1000/time_interval;
-			robot.rightLeg.dx = (robot.rightLeg.x - robot.rightLeg.last_x)*1000/time_interval;
-			robot.rightLeg.dy = (robot.rightLeg.y - robot.rightLeg.last_y)*1000/time_interval;
+			robot.leftLeg.dx = (robot.leftLeg.x - robot.leftLeg.last_x)*1000/sensing_time_interval;
+			robot.leftLeg.dy = (robot.leftLeg.y - robot.leftLeg.last_y)*1000/sensing_time_interval;
+			robot.rightLeg.dx = (robot.rightLeg.x - robot.rightLeg.last_x)*1000/sensing_time_interval;
+			robot.rightLeg.dy = (robot.rightLeg.y - robot.rightLeg.last_y)*1000/sensing_time_interval;
 
 			robot.leftLeg.last_x = robot.leftLeg.x;
 			robot.leftLeg.last_y = robot.leftLeg.y;

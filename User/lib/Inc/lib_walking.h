@@ -19,21 +19,22 @@ typedef struct
     float sinoid_amp;
     float trajectory_centreX;
     float trajectory_centreY;
+    float h_offset; //左腿相对于右腿的高度偏差
 
     float modified_trajectory_centreY;
 } walkingPara_TypeDef;
 
 typedef struct
 {
-    float preSwing_x[6];
-    float preSwing_y[6];
-    float postSwing_x[6];
-    float postSwing_y[6];
+    float preSwing_x[8];
+    float preSwing_y[8];
+    float postSwing_x[7];
+    float postSwing_y[7];
 
     float preStance_x[6];
     float preStance_y[6];
-    float postStance_x[3];
-    float postStance_y[3];
+    float postStance_x[6];
+    float postStance_y[6];
 
 } bezier_control_points_TypeDef;
 
@@ -59,5 +60,6 @@ void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef 
 void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref, \
 						float time, walkingPara_TypeDef walkpara);
 void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h, float push_h);
+void calcu_ctrl_pts2(int flag, float x0, float y0, float length_step, float h, float push_h);
 
 #endif
