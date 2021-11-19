@@ -310,76 +310,72 @@ void calcu_ctrl_pts2(int flag, float x0, float y0, float length_step, float h, f
 		case CALC_PRE_SWING:
 		{
 			bezier_ctrl_pts.preSwing_x[0] = x0 - 0.5 * length_step;
-			bezier_ctrl_pts.preSwing_x[1] = x0 - 0.5 * length_step;
-			bezier_ctrl_pts.preSwing_x[2] = x0 - 0.6 * length_step;
-			bezier_ctrl_pts.preSwing_x[3] = x0 - 0.5 * length_step;
-			bezier_ctrl_pts.preSwing_x[4] = x0 - 0.3 * length_step;
-			bezier_ctrl_pts.preSwing_x[5] = x0 - 0.1 * length_step;
-			bezier_ctrl_pts.preSwing_x[6] = x0 ;
-			bezier_ctrl_pts.preSwing_x[7] = x0 ;
+			bezier_ctrl_pts.preSwing_x[1] = x0 - 0.55 * length_step;
+			bezier_ctrl_pts.preSwing_x[2] = x0 - 0.55 * length_step;
+			bezier_ctrl_pts.preSwing_x[3] = x0 - 0.4 * length_step;
+			bezier_ctrl_pts.preSwing_x[4] = x0 - 0.2 * length_step;
+			bezier_ctrl_pts.preSwing_x[5] = x0;
+
 
 			bezier_ctrl_pts.preSwing_y[0] = y0;
 			bezier_ctrl_pts.preSwing_y[1] = y0;
-			bezier_ctrl_pts.preSwing_y[2] = y0;
-			bezier_ctrl_pts.preSwing_y[3] = y0 - 0.5 * h;
-			bezier_ctrl_pts.preSwing_y[4] = y0 - 0.8 * h;
+			bezier_ctrl_pts.preSwing_y[2] = y0 - 0.5 * h;
+			bezier_ctrl_pts.preSwing_y[3] = y0 - 0.8 * h;
+			bezier_ctrl_pts.preSwing_y[4] = y0 - 1.0 * h;
 			bezier_ctrl_pts.preSwing_y[5] = y0 - 1.0 * h;
-			bezier_ctrl_pts.preSwing_y[6] = y0 - 1.0 * h;
-			bezier_ctrl_pts.preSwing_y[7] = y0 - 1.0 * h;
+
 
 		break;}
 		case CALC_POST_SWING:
 		{
 			bezier_ctrl_pts.postSwing_x[0] = x0;
-			bezier_ctrl_pts.postSwing_x[1] = x0;
-			bezier_ctrl_pts.postSwing_x[2] = x0 + 0.2 * length_step;
-			bezier_ctrl_pts.postSwing_x[3] = x0 + 0.4 * length_step;
-			bezier_ctrl_pts.postSwing_x[4] = x0 + 0.6 * length_step;
-			bezier_ctrl_pts.postSwing_x[5] = x0 + 0.6 * length_step;
-			bezier_ctrl_pts.postSwing_x[6] = x0 + 0.5 * length_step;
+			bezier_ctrl_pts.postSwing_x[1] = x0 + 0.2 * length_step;
+			bezier_ctrl_pts.postSwing_x[2] = x0 + 0.35 * length_step;
+			bezier_ctrl_pts.postSwing_x[3] = x0 + 0.5 * length_step;
+			bezier_ctrl_pts.postSwing_x[4] = x0 + 0.55 * length_step;
+			bezier_ctrl_pts.postSwing_x[5] = x0 + 0.5 * length_step;
+
 
 			bezier_ctrl_pts.postSwing_y[0] = y0 - 1.0 * h;
 			bezier_ctrl_pts.postSwing_y[1] = y0 - 1.0 * h;
-			bezier_ctrl_pts.postSwing_y[2] = y0 - 1.0 * h;
-			bezier_ctrl_pts.postSwing_y[3] = y0 - 0.8 * h;
-			bezier_ctrl_pts.postSwing_y[4] = y0 - 0.6 * h;
+			bezier_ctrl_pts.postSwing_y[2] = y0 - 0.8 * h;
+			bezier_ctrl_pts.postSwing_y[3] = y0 - 0.5 * h;
+			bezier_ctrl_pts.postSwing_y[4] = y0;
 			bezier_ctrl_pts.postSwing_y[5] = y0;
-			bezier_ctrl_pts.postSwing_y[6] = y0;
+
 
 		break;}
 		case CALC_PRE_STANCE:
 		{
 			bezier_ctrl_pts.preStance_x[0] = x0 + 0.5 * length_step;
-			bezier_ctrl_pts.preStance_x[1] = x0 + 0.5 * length_step;
+			bezier_ctrl_pts.preStance_x[1] = x0 + 0.45 * length_step;
 			bezier_ctrl_pts.preStance_x[2] = x0 + 0.35 * length_step;
-			bezier_ctrl_pts.preStance_x[3] = x0 - 0.25 * length_step;
-			bezier_ctrl_pts.preStance_x[4] = x0 - 0.15 * length_step;
-			bezier_ctrl_pts.preStance_x[5] = x0 - 0 * length_step;
+			bezier_ctrl_pts.preStance_x[3] = x0 + 0.2 * length_step;
+			bezier_ctrl_pts.preStance_x[4] = x0 + 0.0 * length_step;
+
 
 			bezier_ctrl_pts.preStance_y[0] = y0;
 			bezier_ctrl_pts.preStance_y[1] = y0;
-			bezier_ctrl_pts.preStance_y[2] = y0;
-			bezier_ctrl_pts.preStance_y[3] = y0 + 0.5 * push_h;
-			bezier_ctrl_pts.preStance_y[4] = y0 + 0.8 * push_h;
-			bezier_ctrl_pts.preStance_y[5] = y0 + 1.0 * push_h;
+			bezier_ctrl_pts.preStance_y[2] = y0 + 0.5 * push_h;
+			bezier_ctrl_pts.preStance_y[3] = y0 + 0.8 * push_h;
+			bezier_ctrl_pts.preStance_y[4] = y0 + 1.0 * push_h;
+
 
 		break;}
 		case CALC_POST_STANCE:
 		{
 			bezier_ctrl_pts.postStance_x[0] = x0 - 0.0 * length_step;
-			bezier_ctrl_pts.postStance_x[1] = x0 - 0.0 * length_step;
-			bezier_ctrl_pts.postStance_x[2] = x0 - 0.15 * length_step;
-			bezier_ctrl_pts.postStance_x[3] = x0 - 0.25 * length_step;
-			bezier_ctrl_pts.postStance_x[4] = x0 - 0.35 * length_step;
-			bezier_ctrl_pts.postStance_x[5] = x0 - 0.5 * length_step;
-
+			bezier_ctrl_pts.postStance_x[1] = x0 - 0.2 * length_step;
+			bezier_ctrl_pts.postStance_x[2] = x0 - 0.35 * length_step;
+			bezier_ctrl_pts.postStance_x[3] = x0 - 0.45 * length_step;
+			bezier_ctrl_pts.postStance_x[4] = x0 - 0.5 * length_step;
 
 			bezier_ctrl_pts.postStance_y[0] = y0 + push_h;
-			bezier_ctrl_pts.postStance_y[1] = y0 + push_h;
-			bezier_ctrl_pts.postStance_y[2] = y0 + push_h * 0.8;
-			bezier_ctrl_pts.postStance_y[3] = y0 + push_h * 0.5;
+			bezier_ctrl_pts.postStance_y[1] = y0 + 0.8 * push_h;
+			bezier_ctrl_pts.postStance_y[2] = y0 + 0.5 * push_h;
+			bezier_ctrl_pts.postStance_y[3] = y0;
 			bezier_ctrl_pts.postStance_y[4] = y0;
-			bezier_ctrl_pts.postStance_y[5] = y0;
+
 
 		break;}
 		default:

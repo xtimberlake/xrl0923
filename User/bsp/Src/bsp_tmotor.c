@@ -353,7 +353,7 @@ void unpackCanInfoFromMotor(uint8_t* data, tmotor_handle_t* motor)
 
 
 	motor->curr_position = uint_to_float(p_int,position_MIN,position_MAX,16);
-	motor->curr_speed_radps = 10*uint_to_float(v_int,velocity_MIN,velocity_MAX,12);
+	motor->curr_speed_radps = uint_to_float(v_int,velocity_MIN,velocity_MAX,12);
 	motor->curr_torque = uint_to_float(t_int,Torque_MIN,Torque_MAX,12);
 	motor->fault = (data[6] << 8) | data[7];
 

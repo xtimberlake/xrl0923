@@ -26,15 +26,15 @@ typedef struct
 
 typedef struct
 {
-    float preSwing_x[8];
-    float preSwing_y[8];
-    float postSwing_x[7];
-    float postSwing_y[7];
+    float preSwing_x[6];
+    float preSwing_y[6];
+    float postSwing_x[6];
+    float postSwing_y[6];
 
-    float preStance_x[6];
-    float preStance_y[6];
-    float postStance_x[6];
-    float postStance_y[6];
+    float preStance_x[5];
+    float preStance_y[5];
+    float postStance_x[5];
+    float postStance_y[5];
 
 } bezier_control_points_TypeDef;
 

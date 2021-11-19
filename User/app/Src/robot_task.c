@@ -108,17 +108,29 @@ void robot_task(void *argument)
 
 			//posture_controller(xsens_data.pitch);
 
-			bezier_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref\
+			bezier_sin_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, &robot.leftLeg.dx_ref, &robot.leftLeg.dy_ref\
 							,robot.walkingParam._t, robot.walkingParam);
 
 			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
-				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref\
+				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref\
 							,robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
 			}
 			else{
-				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref\
+				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref\
 							,robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
 			}
+
+//			bezier_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref
+//							,robot.walkingParam._t, robot.walkingParam);
+//
+//			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
+//				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref
+//							,robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
+//			}
+//			else{
+//				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref
+//							,robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
+//			}
 
 			robot.leftLeg.y_ref += robot.walkingParam.h_offset;
 
