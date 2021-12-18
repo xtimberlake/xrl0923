@@ -181,7 +181,7 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref
 	    case STANCE_PHASE:
 	    {
 	    	bezier_info =  time/(walkpara.T_s*walkpara.lambda);
-	    	temp_x = - distance * bezier_info + walkpara.trajectory_centreX + 0.5 * distance;
+	    	temp_x = - distance * bezier_info + walkpara.modified_trajectory_centreX + 0.5 * distance;
 			temp_y = walkpara.modified_trajectory_centreY + walkpara.sinoid_amp * sin(bezier_info * M_PI);
 			*dx_ref = - distance / (walkpara.lambda*walkpara.T_s);
 			*dy_ref = walkpara.sinoid_amp * cos(bezier_info * M_PI) / (walkpara.lambda*walkpara.T_s);
@@ -195,8 +195,8 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref
 
 	      	      if(bezier_info < 0.5)
 	      	      {
-	      	    	  calcu_ctrl_pts(CALC_PRE_SWING, walkpara.trajectory_centreX, walkpara.modified_trajectory_centreY, \
-	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
+	      	    	  calcu_ctrl_pts(CALC_PRE_SWING, walkpara.modified_trajectory_centreX, walkpara.modified_trajectory_centreY, \
+	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height); //calculate the control points
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.preSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.preSwing_x, bezier_ctrl_pts.preSwing_y, dim, bezier_info*2);
 	      	    	  temp_x = pts[X];
@@ -207,7 +207,7 @@ void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref
 	      	      }
 	      	      else
 	      	      {
-	      	    	  calcu_ctrl_pts(CALC_POST_SWING, walkpara.trajectory_centreX, walkpara.modified_trajectory_centreY, \
+	      	    	  calcu_ctrl_pts(CALC_POST_SWING, walkpara.modified_trajectory_centreX, walkpara.modified_trajectory_centreY, \
 	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.postSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.postSwing_x, bezier_ctrl_pts.postSwing_y, dim, bezier_info*2 - 1);

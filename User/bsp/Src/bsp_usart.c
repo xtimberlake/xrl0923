@@ -2,10 +2,13 @@
 
 extern UART_HandleTypeDef huart7;
 extern DMA_HandleTypeDef hdma_uart7_rx;
+//extern UART_HandleTypeDef huart8;
+//extern DMA_HandleTypeDef hdma_uart8_rx;
 
 
 uint8_t dma_ubuntu_buff[DMA_UBUNTU_LEN];
-uint8_t dma_pc_cmd_buff[PC_CMD_LEN];
+//uint8_t dma_pc_cmd_buff[PC_CMD_LEN];
+uint8_t dma_sixaxis_buff[DMA_SIXAXIS_LEN];
 uint8_t dma_imu_buf[DMA_IMU_LEN];
 
 
@@ -23,9 +26,9 @@ void uart_pkg_init()
 	__HAL_UART_ENABLE_IT(&UBUNTU_USART, UART_IT_IDLE);
 	HAL_UART_Receive_DMA(&UBUNTU_USART, dma_ubuntu_buff, DMA_UBUNTU_LEN);
 
-	__HAL_UART_CLEAR_IDLEFLAG(&PC_CMD_USART);
-	__HAL_UART_ENABLE_IT(&PC_CMD_USART, UART_IT_IDLE);
-	HAL_UART_Receive_DMA(&PC_CMD_USART, dma_pc_cmd_buff, PC_CMD_LEN);
+	__HAL_UART_CLEAR_IDLEFLAG(&SIXAXIS_USART);
+	__HAL_UART_ENABLE_IT(&SIXAXIS_USART, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(&SIXAXIS_USART, dma_sixaxis_buff, DMA_SIXAXIS_LEN);
 
 }
 
@@ -69,33 +72,36 @@ void user_uart_IDLECallback(UART_HandleTypeDef *huart)
 		HAL_UART_Receive_DMA(huart, dma_ubuntu_buff, DMA_UBUNTU_LEN);
 	}
 	if (huart->Instance == UART8) {
+		uint16_t length_data = 0;
+		length_data = DMA_SIXAXIS_LEN - __HAL_DMA_GET_COUNTER(&hdma_uart8_rx);
+		sixaxis_callback_handle(dma_sixaxis_buff, length_data);
+		HAL_UART_Receive_DMA(huart, dma_sixaxis_buff, DMA_SIXAXIS_LEN);
+//	switch(dma_pc_cmd_buff[0]){
+//		case 'i':
+//		{
+//			printf("Initial\r\n");
+//			robot.state=0;
+//			break;
+//		}
+//		case 'w':
+//		{
+//			printf("Work\r\n");
+//			robot.state=1;
+//			break;
+//		}
+//		case 't':
+//		{
+//			printf("trot\r\n");
+//			robot.state=2;
+//			break;
+//		}
+//		default:
+//		{
+//			break;
+//		}
+//	}
 
-	switch(dma_pc_cmd_buff[0]){
-		case 'i':
-		{
-			printf("Initial\r\n");
-			robot.state=0;
-			break;
-		}
-		case 'w':
-		{
-			printf("Work\r\n");
-			robot.state=1;
-			break;
-		}
-		case 't':
-		{
-			printf("trot\r\n");
-			robot.state=2;
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
 
-		HAL_UART_Receive_DMA(&PC_CMD_USART, dma_pc_cmd_buff, PC_CMD_LEN);
 	}
 
 	if(huart->Instance== UART7)

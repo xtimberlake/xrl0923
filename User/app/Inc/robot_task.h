@@ -20,7 +20,13 @@ typedef enum
 {
   INITIALIZING,
   WORKING,
+  YADJUST,
+  XADJUST,
+  BOTHXY,
   TROTING
+
+
+
 
 
 }robot_state_e;
@@ -68,6 +74,7 @@ void robot_impedance_ctrller(void);
 void robot_admittance_ctrller(void);
 void robot_leg_admittance_ctrller(void);
 void posture_controller(float theta);
+void force_controllor(void);
 
 
 //lib_kinematics.c文件的函数

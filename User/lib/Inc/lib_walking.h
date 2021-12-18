@@ -22,6 +22,8 @@ typedef struct
     float h_offset; //左腿相对于右腿的高度偏差
 
     float modified_trajectory_centreY;
+    float modified_trajectory_centreX;
+    float delta_v;
 } walkingPara_TypeDef;
 
 typedef struct

@@ -6,6 +6,7 @@
  */
 #include "robot_task.h"
 #include "bsp_xsens.h"
+#include "bsp_6axis.h"
 
 impedance_t impd_left_hip_diff;
 impedance_t impd_left_knee_diff;
@@ -16,6 +17,7 @@ impedance_t impd_right_knee_diff;
 
 pid_pkg pid_robot_height;
 pid_pkg pid_kv;
+pid_pkg pid_robot_xPosition;
 
 void robot_params_init(void)
 {
@@ -31,13 +33,14 @@ void robot_params_init(void)
 
 		admit_params_init();
 
-
-
 		walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,150,890);
 
-		PID_struct_init(&pid_robot_height, DELTA_PID, 100, 0, 5.0, 0.0, 1.5);
+		PID_struct_init(&pid_robot_height, POSITION_PID, 100, 0, 1.0, 0.0, 1.5);
 		pid_robot_height.deadband = 1.0f;
+		PID_struct_init(&pid_robot_xPosition, POSITION_PID, 100, 0, 0.5, 0.0, 0);
+		pid_robot_xPosition.deadband = 1.0f;
 		robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
+		robot.walkingParam.modified_trajectory_centreX = robot.walkingParam.trajectory_centreX;
 
 		PID_struct_init(&pid_kv, POSITION_PID, 10, 0.0, 0.01, 0, 0);
 
@@ -48,6 +51,8 @@ void robot_params_init(void)
 		robot.leftLeg.last_y = robot.leftLeg.y;
 		robot.rightLeg.last_x = robot.rightLeg.x;
 		robot.rightLeg.last_y = robot.rightLeg.y;
+		osDelay(1000);
+		force.defaultForce = force.FZ1;
 }
 
 void robot_task(void *argument)
@@ -82,8 +87,69 @@ void robot_task(void *argument)
 			robot.rightLeg.dx_ref = 0;
 			robot.rightLeg.dy_ref = 0;
 
+			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
+			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
+			robot_acting();
+			break;
+		}
+		case YADJUST:
+		{
+			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.leftLeg.dx_ref = 0;
+			robot.leftLeg.dy_ref = 0;
+			robot.rightLeg.dx_ref = 0;
+			robot.rightLeg.dy_ref = 0;
+
+			posture_controller(xsens_data.pitch);
+//			force_controllor(force.FZ1);
+			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
+			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
+			robot_acting();
+			break;
+		}
+		case XADJUST:
+		{
+			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.leftLeg.dx_ref = 0;
+			robot.leftLeg.dy_ref = 0;
+			robot.rightLeg.dx_ref = 0;
+			robot.rightLeg.dy_ref = 0;
+
 			//posture_controller(xsens_data.pitch);
-			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
+			force_controllor();
+			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
+			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
+			robot_acting();
+			break;
+		}
+		case BOTHXY:
+		{
+			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
+			robot.leftLeg.dx_ref = 0;
+			robot.leftLeg.dy_ref = 0;
+			robot.rightLeg.dx_ref = 0;
+			robot.rightLeg.dy_ref = 0;
+
+			posture_controller(xsens_data.pitch);
+			force_controllor();
+			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
 			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
 			robot_acting();
 			break;
@@ -108,6 +174,7 @@ void robot_task(void *argument)
 
 			//posture_controller(xsens_data.pitch);
 
+			force_controllor();
 			bezier_sin_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, &robot.leftLeg.dx_ref, &robot.leftLeg.dy_ref\
 							,robot.walkingParam._t, robot.walkingParam);
 
@@ -291,8 +358,6 @@ void admt_foot_point_control2(uint32_t t)
 	float phi_left_1, phi_left_2;
 	float phi_right_1, phi_right_2;
 
-
-
 	// IK Position:
 	// Left X:
 	admittance_calc2(&admt_left_x_diff_2, -robot.leftLeg.fx, robot.leftLeg.x_ref, robot.leftLeg.dx, t);
@@ -392,11 +457,24 @@ void posture_controller(float theta)
 {
 	//dy = PID(-theta)
 	// acutal_trajactory_center_y =
-	robot.walkingParam.modified_trajectory_centreY += 0.001 * pid_calc(&pid_robot_height, theta, 0.0);
+	robot.walkingParam.modified_trajectory_centreY += 0.01 * pid_calc(&pid_robot_height, theta, 0.0);
 //	robot.walkingParam.modified_trajectory_centreY  = sature(robot.walkingParam.modified_trajectory_centreY ,
 //			1045-robot.walkingParam.sinoid_amp, 895+robot.walkingParam.leg_lift_height);
-	robot.walkingParam.modified_trajectory_centreY  = sature(robot.walkingParam.modified_trajectory_centreY ,\
-				1045-robot.walkingParam.sinoid_amp, 880+robot.walkingParam.leg_lift_height);
+	robot.walkingParam.modified_trajectory_centreY  = sature(robot.walkingParam.modified_trajectory_centreY , \
+				950, 720);
+}
+float mid_data;
+//float default_value = -80.0f;
+void force_controllor(void)
+{
+	mid_data = pid_calc(&pid_robot_xPosition, force.FZ1, force.defaultForce);
+	robot.walkingParam.modified_trajectory_centreX += 0.01*mid_data;
+	force.k = 0.01;
+//	force.deltaF = force.FZ1-force.defaultForce;
+//	robot.walkingParam.delta_v = force.deltaF*force.k;
+//	robot.walkingParam._v += robot.walkingParam.delta_v;
+	robot.walkingParam.modified_trajectory_centreX = sature(robot.walkingParam.modified_trajectory_centreX , \
+			300, -300);
 
 }
 
