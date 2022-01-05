@@ -25,4 +25,6 @@ typedef struct{
 
 extern FORCE force;
 
+void sixaxis_callback_handle(uint8_t *rx_buff, uint16_t length);
+
 #endif

@@ -20,10 +20,13 @@ void walkingPara_struct_init(walkingPara_TypeDef* walkpara, float T_s,float _t,f
 	walkpara->leg_lift_height=leg_lift_height;
 	walkpara->body_hight=body_height;
 
-	walkpara->push_height = 10.0;
-	walkpara->sinoid_amp = 10.0;
+	walkpara->push_height = 16.0;
+	walkpara->sinoid_amp = 16.0;
 
-	walkpara->trajectory_centreX = 0.0;
+	walkpara->trajectory_centreX[LeftLeg] = 0.0f;
+	walkpara->trajectory_centreX[RightLeg] = 0.0f;
+	walkpara->record_x[LeftLeg] = 0.0f;
+	walkpara->record_x[RightLeg] = 0.0f;
 	walkpara->trajectory_centreY = body_height;
 }
 
@@ -91,130 +94,133 @@ float sature(float value,float maxvalue,float minvalue){
 
 }
 
+//
+//void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara)
+//{
+//	float distance = walkpara.T_s/2 * walkpara._v;
+//	float bezier_info; // bezier_info is the Bezier factor belongs to [0, 1]
+//	int gait_phase;
+//	float stance_div = 0.5;
+//
+//
+//	if(time>=0 && time < walkpara.T_s*walkpara.lambda) gait_phase = STANCE_PHASE;
+//	else if(time>=walkpara.T_s*walkpara.lambda && time <= walkpara.T_s) gait_phase = SWING_PHASE;
+//
+//	  switch(gait_phase)
+//	  {
+//	    case STANCE_PHASE:
+//	    {
+//	    	bezier_info =  time/(walkpara.T_s*walkpara.lambda);
+//	    	if(bezier_info < stance_div)
+//	    	{
+//	    		//bezier/0.5
+//	    		calcu_ctrl_pts2(CALC_PRE_STANCE, walkpara.trajectory_centreX, walkpara.trajectory_centreY,
+//	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
+//	    		uint16_t dim = sizeof(bezier_ctrl_pts.preStance_x) / sizeof(float);
+//	    		float* pts = bezier_generate(bezier_ctrl_pts.preStance_x, bezier_ctrl_pts.preStance_y, dim, bezier_info/stance_div);
+//	    		*x_ref = pts[X];
+//	    		*y_ref = pts[Y];
+//	    	}
+//	    	else {
+//	    		calcu_ctrl_pts2(CALC_POST_STANCE, walkpara.trajectory_centreX, walkpara.trajectory_centreY,
+//	    			    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
+//	    		uint16_t dim = sizeof(bezier_ctrl_pts.postStance_x) / sizeof(float);
+//
+//	    		float* pts = bezier_generate(bezier_ctrl_pts.postStance_x, bezier_ctrl_pts.postStance_y, dim,
+//	    				bezier_info/(1.0-stance_div) + stance_div/(stance_div-1));
+//	    		*x_ref = pts[X];
+//	    		*y_ref = pts[Y];
+//			}
+//
+//	    break;}
+//	    case SWING_PHASE:
+//	    {
+//
+//	      bezier_info = time/((1.0-walkpara.lambda)*walkpara.T_s) + walkpara.lambda/(walkpara.lambda-1);
+//
+//	      if(bezier_info < 0.5)
+//	      {
+//	    	  calcu_ctrl_pts2(CALC_PRE_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY,
+//	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
+//	    	  uint16_t dim = sizeof(bezier_ctrl_pts.preSwing_x) / sizeof(float);
+//	    	  float* pts = bezier_generate(bezier_ctrl_pts.preSwing_x, bezier_ctrl_pts.preSwing_y, dim, bezier_info*2);
+//	    	  *x_ref = pts[X];
+//	    	  *y_ref = pts[Y];
+//	      }
+//	      else
+//	      {
+//	    	  calcu_ctrl_pts2(CALC_POST_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY,
+//	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
+//	    	  uint16_t dim = sizeof(bezier_ctrl_pts.postSwing_x) / sizeof(float);
+//	    	  float* pts = bezier_generate(bezier_ctrl_pts.postSwing_x, bezier_ctrl_pts.postSwing_y, dim, bezier_info*2 - 1);
+//	    	  *x_ref = pts[X];
+//	    	  *y_ref = pts[Y];
+//
+//	      }
+//
+//
+//	    break;}
+//	    default: break;
+//
+//	  }
+//
+//}
 
-void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara)
+void bezier_sin_planning(int leg, float* x_ref,float* y_ref, float* dx_ref, float* dy_ref, float time)
 {
-	float distance = walkpara.T_s/2 * walkpara._v;
-	float bezier_info; // bezier_info is the Bezier factor belongs to [0, 1]
-	int gait_phase;
-	float stance_div = 0.5;
-
-
-	if(time>=0 && time < walkpara.T_s*walkpara.lambda) gait_phase = STANCE_PHASE;
-	else if(time>=walkpara.T_s*walkpara.lambda && time <= walkpara.T_s) gait_phase = SWING_PHASE;
-
-	  switch(gait_phase)
-	  {
-	    case STANCE_PHASE:
-	    {
-	    	bezier_info =  time/(walkpara.T_s*walkpara.lambda);
-	    	if(bezier_info < stance_div)
-	    	{
-	    		//bezier/0.5
-	    		calcu_ctrl_pts2(CALC_PRE_STANCE, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
-	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
-	    		uint16_t dim = sizeof(bezier_ctrl_pts.preStance_x) / sizeof(float);
-	    		float* pts = bezier_generate(bezier_ctrl_pts.preStance_x, bezier_ctrl_pts.preStance_y, dim, bezier_info/stance_div);
-	    		*x_ref = pts[X];
-	    		*y_ref = pts[Y];
-	    	}
-	    	else {
-	    		calcu_ctrl_pts2(CALC_POST_STANCE, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
-	    			    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
-	    		uint16_t dim = sizeof(bezier_ctrl_pts.postStance_x) / sizeof(float);
-
-	    		float* pts = bezier_generate(bezier_ctrl_pts.postStance_x, bezier_ctrl_pts.postStance_y, dim, \
-	    				bezier_info/(1.0-stance_div) + stance_div/(stance_div-1));
-	    		*x_ref = pts[X];
-	    		*y_ref = pts[Y];
-			}
-
-	    break;}
-	    case SWING_PHASE:
-	    {
-
-	      bezier_info = time/((1.0-walkpara.lambda)*walkpara.T_s) + walkpara.lambda/(walkpara.lambda-1);
-
-	      if(bezier_info < 0.5)
-	      {
-	    	  calcu_ctrl_pts2(CALC_PRE_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
-	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
-	    	  uint16_t dim = sizeof(bezier_ctrl_pts.preSwing_x) / sizeof(float);
-	    	  float* pts = bezier_generate(bezier_ctrl_pts.preSwing_x, bezier_ctrl_pts.preSwing_y, dim, bezier_info*2);
-	    	  *x_ref = pts[X];
-	    	  *y_ref = pts[Y];
-	      }
-	      else
-	      {
-	    	  calcu_ctrl_pts2(CALC_POST_SWING, walkpara.trajectory_centreX, walkpara.trajectory_centreY, \
-	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
-	    	  uint16_t dim = sizeof(bezier_ctrl_pts.postSwing_x) / sizeof(float);
-	    	  float* pts = bezier_generate(bezier_ctrl_pts.postSwing_x, bezier_ctrl_pts.postSwing_y, dim, bezier_info*2 - 1);
-	    	  *x_ref = pts[X];
-	    	  *y_ref = pts[Y];
-
-	      }
-
-
-	    break;}
-	    default: break;
-
-	  }
-
-}
-
-void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref, \
-						float time, walkingPara_TypeDef walkpara)
-{
-	float distance = walkpara.T_s/2 * walkpara._v;
+	float distance = robot.walkingParam.T_s/2 * robot.walkingParam._v;
 	float bezier_info; // bezier_info is the Bezier factor belongs to [0, 1]
 	int gait_phase;
 	float temp_x;
 	float temp_y;
 
 
-	if(time>=0 && time < walkpara.T_s*walkpara.lambda) gait_phase = STANCE_PHASE;
-	else if(time>=walkpara.T_s*walkpara.lambda && time <= walkpara.T_s) gait_phase = SWING_PHASE;
+	if(time>=0 && time < robot.walkingParam.T_s*robot.walkingParam.lambda) gait_phase = STANCE_PHASE;
+	else if(time>=robot.walkingParam.T_s*robot.walkingParam.lambda && time <= robot.walkingParam.T_s) gait_phase = SWING_PHASE;
 
 	  switch(gait_phase)
 	  {
 	    case STANCE_PHASE:
 	    {
-	    	bezier_info =  time/(walkpara.T_s*walkpara.lambda);
-	    	temp_x = - distance * bezier_info + walkpara.modified_trajectory_centreX + 0.5 * distance;
-			temp_y = walkpara.modified_trajectory_centreY + walkpara.sinoid_amp * sin(bezier_info * M_PI);
-			*dx_ref = - distance / (walkpara.lambda*walkpara.T_s);
-			*dy_ref = walkpara.sinoid_amp * cos(bezier_info * M_PI) / (walkpara.lambda*walkpara.T_s);
+	    	force_controllor(leg);
+	    	posture_controller(xsens_data.pitch);
+	    	robot.walkingParam.record_x[leg] = robot.walkingParam.trajectory_centreX[leg];
+	    	bezier_info =  time/(robot.walkingParam.T_s*robot.walkingParam.lambda);
+	    	temp_x = - distance * bezier_info + robot.walkingParam.trajectory_centreX[leg] + 0.5 * distance;
+			temp_y = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.sinoid_amp * sin(bezier_info * M_PI);
+			*dx_ref = - distance / (robot.walkingParam.lambda*robot.walkingParam.T_s);
+			*dy_ref = robot.walkingParam.sinoid_amp * cos(bezier_info * M_PI) / (robot.walkingParam.lambda*robot.walkingParam.T_s);
 
 	    break;}
 	    case SWING_PHASE:
 	    {
 
 
-	      bezier_info = time/((1.0-walkpara.lambda)*walkpara.T_s) + walkpara.lambda/(walkpara.lambda-1);
-
+	      bezier_info = time/((1.0-robot.walkingParam.lambda)*robot.walkingParam.T_s) + robot.walkingParam.lambda/(robot.walkingParam.lambda-1);
+	      //calculate the centreX
+	      robot.walkingParam.trajectory_centreX[leg] = - robot.walkingParam.record_x[leg] * bezier_info + robot.walkingParam.record_x[leg];
 	      	      if(bezier_info < 0.5)
 	      	      {
-	      	    	  calcu_ctrl_pts(CALC_PRE_SWING, walkpara.modified_trajectory_centreX, walkpara.modified_trajectory_centreY, \
-	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height); //calculate the control points
+	      	    	  calcu_ctrl_pts(CALC_PRE_SWING, robot.walkingParam.trajectory_centreX[leg], robot.walkingParam.modified_trajectory_centreY, \
+	      	    			  	  	  distance, robot.walkingParam.leg_lift_height, robot.walkingParam.push_height); //calculate the control points
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.preSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.preSwing_x, bezier_ctrl_pts.preSwing_y, dim, bezier_info*2);
 	      	    	  temp_x = pts[X];
 	      	    	  temp_y = pts[Y];
-	      	    	  *dx_ref = pts[DX]/((1.0-walkpara.lambda)*walkpara.T_s);
-	      	    	  *dy_ref = pts[DY]/((1.0-walkpara.lambda)*walkpara.T_s);
+	      	    	  *dx_ref = pts[DX]/((1.0-robot.walkingParam.lambda)*robot.walkingParam.T_s);
+	      	    	  *dy_ref = pts[DY]/((1.0-robot.walkingParam.lambda)*robot.walkingParam.T_s);
 
 	      	      }
 	      	      else
 	      	      {
-	      	    	  calcu_ctrl_pts(CALC_POST_SWING, walkpara.modified_trajectory_centreX, walkpara.modified_trajectory_centreY, \
-	      	    			  	  	  distance, walkpara.leg_lift_height, walkpara.push_height);
+	      	    	  calcu_ctrl_pts(CALC_POST_SWING, robot.walkingParam.trajectory_centreX[leg], robot.walkingParam.modified_trajectory_centreY, \
+	      	    			  	  	  distance, robot.walkingParam.leg_lift_height, robot.walkingParam.push_height);
 	      	    	  uint16_t dim = sizeof(bezier_ctrl_pts.postSwing_x) / sizeof(float);
 	      	    	  float* pts = bezier_generate(bezier_ctrl_pts.postSwing_x, bezier_ctrl_pts.postSwing_y, dim, bezier_info*2 - 1);
 	      	    	  temp_x = pts[X];
 	      	    	  temp_y = pts[Y];
-	      	    	  *dx_ref = pts[DX]/((1.0-walkpara.lambda)*walkpara.T_s);
-	      	    	  *dy_ref = pts[DY]/((1.0-walkpara.lambda)*walkpara.T_s);
+	      	    	  *dx_ref = pts[DX]/((1.0-robot.walkingParam.lambda)*robot.walkingParam.T_s);
+	      	    	  *dy_ref = pts[DY]/((1.0-robot.walkingParam.lambda)*robot.walkingParam.T_s);
 
 	      	      }
 
@@ -382,3 +388,4 @@ void calcu_ctrl_pts2(int flag, float x0, float y0, float length_step, float h, f
 		break;
 	}
 }
+

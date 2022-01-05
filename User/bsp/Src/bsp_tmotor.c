@@ -62,14 +62,14 @@ void tmotor_init(tmotor_handle_t* m, uint8_t id,\
 void pkg_tmotor_init()
 {
 
-	m.h_kp_theta = 30.0f;
-	m.h_kd_theta = 5.0f;
+	m.h_kp_theta = 45.0f;
+	m.h_kd_theta = 10.0f;
 	m.h_kp_v = 50.0f;
 	m.h_ki_v = 0.0f;
 	m.h_kd_v = 0.0f;
 
-	m.k_kp_theta = 30.0f;
-	m.k_kd_theta = 5.0f;
+	m.k_kp_theta = 45.0f;
+	m.k_kd_theta = 10.0f;
 	m.k_kp_v = 50.0f;
 	m.k_ki_v = 0.0f;
 	m.k_kd_v = 0.0f;

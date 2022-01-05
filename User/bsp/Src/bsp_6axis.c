@@ -1,4 +1,4 @@
-#include <bsp_6axis.h>
+#include "bsp_6axis.h"
 
 FORCE force;
 uint8_t aRxBuffer[60];

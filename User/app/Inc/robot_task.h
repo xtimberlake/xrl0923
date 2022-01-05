@@ -25,10 +25,6 @@ typedef enum
   BOTHXY,
   TROTING
 
-
-
-
-
 }robot_state_e;
 
 typedef struct
@@ -74,7 +70,7 @@ void robot_impedance_ctrller(void);
 void robot_admittance_ctrller(void);
 void robot_leg_admittance_ctrller(void);
 void posture_controller(float theta);
-void force_controllor(void);
+void force_controllor(int leg);
 
 
 //lib_kinematics.c文件的函数

@@ -33,14 +33,14 @@ void robot_params_init(void)
 
 		admit_params_init();
 
-		walkingPara_struct_init(&robot.walkingParam, 1.5,0,0.6,0,150,890);
+		walkingPara_struct_init(&robot.walkingParam, 1.3,0,0.6,0,200,890);
 
 		PID_struct_init(&pid_robot_height, POSITION_PID, 100, 0, 1.0, 0.0, 1.5);
 		pid_robot_height.deadband = 1.0f;
 		PID_struct_init(&pid_robot_xPosition, POSITION_PID, 100, 0, 0.5, 0.0, 0);
-		pid_robot_xPosition.deadband = 1.0f;
+		pid_robot_xPosition.deadband = 3.0f; //float deadline range is 3
 		robot.walkingParam.modified_trajectory_centreY = robot.walkingParam.trajectory_centreY;
-		robot.walkingParam.modified_trajectory_centreX = robot.walkingParam.trajectory_centreX;
+
 
 		PID_struct_init(&pid_kv, POSITION_PID, 10, 0.0, 0.01, 0, 0);
 
@@ -53,6 +53,7 @@ void robot_params_init(void)
 		robot.rightLeg.last_y = robot.rightLeg.y;
 		osDelay(1000);
 		force.defaultForce = force.FZ1;
+		force.k = 0.01;
 }
 
 void robot_task(void *argument)
@@ -78,17 +79,17 @@ void robot_task(void *argument)
 		}
 		case WORKING:
 		{
-			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.walkingParam.trajectory_centreX[LeftLeg] = 0;
+			robot.walkingParam.trajectory_centreX[RightLeg] = 0;
+			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX[LeftLeg];
 			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
-			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX[RightLeg];
 			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
 			robot.leftLeg.dx_ref = 0;
 			robot.leftLeg.dy_ref = 0;
 			robot.rightLeg.dx_ref = 0;
 			robot.rightLeg.dy_ref = 0;
 
-			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
-			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
 			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
 			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
 			robot_acting();
@@ -96,9 +97,9 @@ void robot_task(void *argument)
 		}
 		case YADJUST:
 		{
-			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX[LeftLeg];
 			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
-			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX[RightLeg];
 			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
 			robot.leftLeg.dx_ref = 0;
 			robot.leftLeg.dy_ref = 0;
@@ -107,8 +108,7 @@ void robot_task(void *argument)
 
 			posture_controller(xsens_data.pitch);
 //			force_controllor(force.FZ1);
-			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
-			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+
 			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
 			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
 			robot_acting();
@@ -116,42 +116,42 @@ void robot_task(void *argument)
 		}
 		case XADJUST:
 		{
-			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
-			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
-			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
-			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
-			robot.leftLeg.dx_ref = 0;
-			robot.leftLeg.dy_ref = 0;
-			robot.rightLeg.dx_ref = 0;
-			robot.rightLeg.dy_ref = 0;
-
-			//posture_controller(xsens_data.pitch);
-			force_controllor();
-			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
-			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
-			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
-			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
-			robot_acting();
+//			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+//			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
+//			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+//			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
+//			robot.leftLeg.dx_ref = 0;
+//			robot.leftLeg.dy_ref = 0;
+//			robot.rightLeg.dx_ref = 0;
+//			robot.rightLeg.dy_ref = 0;
+//
+//			//posture_controller(xsens_data.pitch);
+//			force_controllor();
+//			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+//			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+//			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
+//			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
+//			robot_acting();
 			break;
 		}
 		case BOTHXY:
 		{
-			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
-			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
-			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
-			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
-			robot.leftLeg.dx_ref = 0;
-			robot.leftLeg.dy_ref = 0;
-			robot.rightLeg.dx_ref = 0;
-			robot.rightLeg.dy_ref = 0;
-
-			posture_controller(xsens_data.pitch);
-			force_controllor();
-			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
-			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
-			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
-			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
-			robot_acting();
+//			robot.leftLeg.x_ref = robot.walkingParam.trajectory_centreX;
+//			robot.leftLeg.y_ref = robot.walkingParam.trajectory_centreY;
+//			robot.rightLeg.x_ref = robot.walkingParam.trajectory_centreX;
+//			robot.rightLeg.y_ref = robot.walkingParam.trajectory_centreY;
+//			robot.leftLeg.dx_ref = 0;
+//			robot.leftLeg.dy_ref = 0;
+//			robot.rightLeg.dx_ref = 0;
+//			robot.rightLeg.dy_ref = 0;
+//
+//			posture_controller(xsens_data.pitch);
+//			force_controllor();
+//			robot.leftLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+//			robot.rightLeg.x_ref = robot.walkingParam.modified_trajectory_centreX;
+//			robot.leftLeg.y_ref = robot.walkingParam.modified_trajectory_centreY + robot.walkingParam.h_offset;
+//			robot.rightLeg.y_ref = robot.walkingParam.modified_trajectory_centreY;
+//			robot_acting();
 			break;
 		}
 		case TROTING:
@@ -172,20 +172,18 @@ void robot_task(void *argument)
 //				bezier_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
 //			}
 
-			//posture_controller(xsens_data.pitch);
-
-			force_controllor();
-			bezier_sin_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref, &robot.leftLeg.dx_ref, &robot.leftLeg.dy_ref\
-							,robot.walkingParam._t, robot.walkingParam);
+//			posture_controller(xsens_data.pitch);
+			bezier_sin_planning(LeftLeg, &robot.leftLeg.x_ref,&robot.leftLeg.y_ref, &robot.leftLeg.dx_ref, &robot.leftLeg.dy_ref\
+							,robot.walkingParam._t);
 
 			if(robot.walkingParam._t<=robot.walkingParam.T_s/2){
-				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref\
-							,robot.walkingParam._t + robot.walkingParam.T_s/2,  robot.walkingParam);
+				bezier_sin_planning(RightLeg, &robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref\
+							,robot.walkingParam._t + robot.walkingParam.T_s/2);
 			}
 			else{
-				bezier_sin_planning(&robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref\
-							,robot.walkingParam._t-robot.walkingParam.T_s/2, robot.walkingParam);
-			}
+				bezier_sin_planning(RightLeg, &robot.rightLeg.x_ref,&robot.rightLeg.y_ref, &robot.rightLeg.dx_ref, &robot.rightLeg.dy_ref\
+							,robot.walkingParam._t-robot.walkingParam.T_s/2);
+			} // keep the right leg move behind the left half of the cycle
 
 //			bezier_planning(&robot.leftLeg.x_ref,&robot.leftLeg.y_ref
 //							,robot.walkingParam._t, robot.walkingParam);
@@ -465,16 +463,28 @@ void posture_controller(float theta)
 }
 float mid_data;
 //float default_value = -80.0f;
-void force_controllor(void)
+void force_controllor(int leg)
 {
+
+	static int last_leg = 0;
+	if(leg != last_leg)
+	{
+		pid_robot_xPosition.err[LAST] = 0;
+		last_leg = leg;
+	}
+
+//	-------------------------Version1-----------------------------------
 	mid_data = pid_calc(&pid_robot_xPosition, force.FZ1, force.defaultForce);
-	robot.walkingParam.modified_trajectory_centreX += 0.01*mid_data;
-	force.k = 0.01;
-//	force.deltaF = force.FZ1-force.defaultForce;
-//	robot.walkingParam.delta_v = force.deltaF*force.k;
-//	robot.walkingParam._v += robot.walkingParam.delta_v;
-	robot.walkingParam.modified_trajectory_centreX = sature(robot.walkingParam.modified_trajectory_centreX , \
-			300, -300);
+
+	robot.walkingParam.trajectory_centreX[leg] += 0.01*mid_data;
+	robot.walkingParam.trajectory_centreX[leg] = sature(robot.walkingParam.trajectory_centreX[leg] ,300, -300);
+
+
+
+	force.deltaF = force.FZ1-force.defaultForce;
+	robot.walkingParam.delta_v = force.deltaF*force.k;
+	robot.walkingParam._v += robot.walkingParam.delta_v;
+	robot.walkingParam._v = sature(robot.walkingParam._v ,450, 0.0f);
 
 }
 

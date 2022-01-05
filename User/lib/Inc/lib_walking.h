@@ -17,12 +17,14 @@ typedef struct
     float push_height;
     float body_hight;           //身体高度
     float sinoid_amp;
-    float trajectory_centreX;
+
     float trajectory_centreY;
     float h_offset; //左腿相对于右腿的高度偏差
 
     float modified_trajectory_centreY;
-    float modified_trajectory_centreX;
+    float trajectory_centreX[2];
+    float record_x[2];
+
     float delta_v;
 } walkingPara_TypeDef;
 
@@ -48,6 +50,12 @@ enum
 	CALC_POST_STANCE = 3
 };
 
+enum
+{
+	LeftLeg = 0,
+	RightLeg = 1
+};
+
 extern bezier_control_points_TypeDef bezier_ctrl_pts;
 
 #include "lib_planning.h"
@@ -59,8 +67,7 @@ void troting(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara
 float Interpolate_cubicBezier(float y0, float yf, float x);
 float sature(float value,float maxvalue,float minvalue);\
 void bezier_planning(float* x_ref,float* y_ref, float time, walkingPara_TypeDef walkpara);
-void bezier_sin_planning(float* x_ref,float* y_ref, float* dx_ref, float* dy_ref, \
-						float time, walkingPara_TypeDef walkpara);
+void bezier_sin_planning(int leg, float* x_ref,float* y_ref, float* dx_ref, float* dy_ref, float time);
 void calcu_ctrl_pts(int flag, float x0, float y0, float length_step, float h, float push_h);
 void calcu_ctrl_pts2(int flag, float x0, float y0, float length_step, float h, float push_h);
 
