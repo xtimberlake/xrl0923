@@ -8,8 +8,7 @@
 #include "lib_admittance.h"
 #include "lib_pid.h"
 
-//#define LENGTH_HIP_LINK 625.0f
-//#define LENGTH_KNEE_LINK 520.0f
+#define USE_UNITREE 1  //whether use unitree motor to control
 
 #define LENGTH_HIP_LINK 510.0f
 #define LENGTH_KNEE_LINK 460.0f

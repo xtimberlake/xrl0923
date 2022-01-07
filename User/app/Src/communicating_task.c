@@ -17,7 +17,11 @@ chassis_t chassis;
 union UNION_Float tx_data1;
 union UNION_Float tx_data2;
 uint8_t uart_tx_buff[8];
+uint8_t motor_uart_tx_data[MOTOR_UART_TX_SIZE];
 uint8_t ubuntu_uart_tx_buff[8];
+
+uint8_t motor_send_flag;
+
 
 uint8_t* from_float_to_uint(float f)
 {
@@ -55,22 +59,11 @@ void communicatingTask(void *argument)
 	float sin_varible;
 	float cos_varible;
 
+	motor_uart_tx_data[0] = 0x0D;
+	motor_uart_tx_data[1] = 0x0A;
   /* Infinite loop */
   for(;;)
   {
-	  //与下列函数配套使用
-	  //osSignalSet(communicTaskHandle, CMD_SEND_FLAG);
-//	  event = osSignalWait(CMD_SEND_FLAG, osWaitForever);
-//
-//	  		if (event.status == osEventSignal)
-//	      {
-//				if (event.value.signals & CMD_SEND_FLAG)
-//				{//send_chassis_motor_ctrl_message(motor_cur.chassis_cur);
-//
-//				}
-//
-//
-//	      }
 
 	  chassis.vw += chassis.vy;
 	  chassis.vx = 50 * sin(chassis.vw);
@@ -90,7 +83,17 @@ void communicatingTask(void *argument)
 	  HAL_UART_Transmit(&huart6, ubuntu_uart_tx_buff, sizeof(ubuntu_uart_tx_buff), 0xFF);
 	  //HAL_UART_Transmit(&huart6, uart_tx_buff, sizeof(uart_tx_buff), 0xFF);
 
-    osDelay(100);
+
+
+	  if(USE_UNITREE && motor_send_flag)
+	  {
+
+
+
+		  HAL_UART_Transmit(&huart6, motor_uart_tx_data, sizeof(motor_uart_tx_data), 0xFF);
+		  clear_send_signal();
+	  }
+	  //osDelay(100);
   }
   /* USER CODE END communicatingTask */
 }
@@ -100,3 +103,13 @@ void ubuntu_receive_callback(uint8_t *rx_buff, uint16_t length)
 	;
 
 }
+
+void set_send_signal()
+{	motor_send_flag = 1;
+	}
+
+void clear_send_signal()
+{	motor_send_flag = 0;
+	}
+
+

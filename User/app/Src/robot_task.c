@@ -5,6 +5,7 @@
  *      Author: haoyun
  */
 #include "robot_task.h"
+#include "cmsis_os.h"
 #include "bsp_xsens.h"
 #include "bsp_6axis.h"
 
@@ -18,6 +19,9 @@ impedance_t impd_right_knee_diff;
 pid_pkg pid_robot_height;
 pid_pkg pid_kv;
 pid_pkg pid_robot_xPosition;
+
+
+extern osThreadId_t communicatingTaHandle;
 
 void robot_params_init(void)
 {
@@ -257,7 +261,11 @@ void robot_acting()
 //	rightKnee_Motor.ref_cmd = sature(rightKnee_Motor.ref_cmd, LEFT_KNEE_MAX_ANGLE, LEFT_KNEE_MIN_ANGLE);
 //	tmotor_set_position(RIGHT_KNEE_MOTOR_ID, rightKnee_Motor.ref_cmd, rightKnee_Motor.Kp_theta);
 
+#if USE_UNITREE == 1
+	// do some sature and calculation here
+	set_send_signal();
 
+#else
 	leftHip_Motor.ref_position = sature(leftHip_Motor.ref_position, RIGHT_HIP_MAX_ANGLE, RIGHT_HIP_MIN_ANGLE);
 	tmotor_set_position(LEFT_HIP_MOTOR_ID, leftHip_Motor.ref_position, leftHip_Motor.Kp_theta);
 	osDelay(1);
@@ -270,7 +278,7 @@ void robot_acting()
 	osDelay(1);
 	rightKnee_Motor.ref_position = sature(rightKnee_Motor.ref_position, LEFT_KNEE_MAX_ANGLE, LEFT_KNEE_MIN_ANGLE);
 	tmotor_set_position(RIGHT_KNEE_MOTOR_ID, rightKnee_Motor.ref_position, rightKnee_Motor.Kp_theta);
-
+#endif
 }
 
 void normal_control(void)

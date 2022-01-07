@@ -3,12 +3,16 @@
 
 #include "cmsis_os.h"
 #include "cmsis_os2.h"
+#include "robot_task.h"
 #include "usart.h"
 #include "main.h"
 #include "common_debug.h"
 #include "math.h"
 
-#define CMD_SEND_FLAG  (1 << 0)
+extern uint8_t motor_send_flag;
+
+#define MOTOR_UART_TX_SIZE 123
+
 
 typedef struct
 {
@@ -23,5 +27,7 @@ typedef struct
 uint8_t* from_float_to_uint(float f);
 void communicatingTask(void *argument);
 void ubuntu_receive_callback(uint8_t *rx_buff, uint16_t length);
+void set_send_signal(void);
+void clear_send_signal(void);
 
 #endif

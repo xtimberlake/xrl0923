@@ -17,6 +17,7 @@
 
 
 
+
 /* External private variables ---------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern DMA_HandleTypeDef hdma_uart8_rx;
